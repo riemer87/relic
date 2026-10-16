@@ -1,10 +1,6 @@
 package de.riemer87.relic.journal
 
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.time.Clock
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -20,7 +16,7 @@ enum class SaveResult {
     DELETED,
 }
 
-/** Liest und schreibt Einträge. Ab Meilenstein 2 kommt eine Variante für den gewählten Ordner hinzu. */
+/** Liest und schreibt Einträge. */
 interface JournalStore {
     /** Lädt den Eintrag eines Tages, oder `null`, wenn es keine Datei gibt. */
     @Throws(IOException::class)
@@ -39,32 +35,45 @@ fun entryPath(date: LocalDate): String =
     String.format(Locale.ROOT, "%04d/%02d/%s.md", date.year, date.monthValue, date)
 
 /**
- * Speichert Einträge als Dateien in einem normalen Ordner auf dem Gerät.
- *
- * Geschrieben wird immer erst in eine temporäre Datei, die dann in einem Schritt
- * umbenannt wird. So bleibt bei einem Absturz die alte Datei vollständig erhalten.
+ * Pfad der Zwischendatei, in die vor dem eigentlichen Speichern geschrieben wird.
+ * Bewusst ohne Punkt am Anfang: Manche Android-Ordneranbieter blenden solche Dateien aus,
+ * dann könnte die App sie nach einem Absturz nicht wiederfinden.
  */
-class FileJournalStore(
-    private val root: File,
+fun tempPath(path: String): String = "$path.tmp"
+
+/**
+ * Speichert Einträge als Dateien in einem [DocumentTree].
+ *
+ * Android kann in freigegebenen Ordnern eine Datei nicht in einem Schritt durch eine andere
+ * ersetzen. Deshalb läuft Speichern so:
+ * 1. Neuen Inhalt vollständig in die Zwischendatei schreiben.
+ * 2. Alte Datei löschen.
+ * 3. Zwischendatei auf den richtigen Namen umbenennen.
+ *
+ * Stürzt das Gerät zwischen 2 und 3 ab, gibt es nur noch die vollständige Zwischendatei.
+ * [load] erkennt das und macht sie wieder zum Eintrag. Vorher ist die alte Datei noch da.
+ */
+class TreeJournalStore(
+    private val tree: DocumentTree,
     private val clock: Clock = Clock.systemDefaultZone(),
 ) : JournalStore {
 
-    fun fileFor(date: LocalDate): File = File(root, entryPath(date))
-
     override fun load(date: LocalDate): Entry? {
-        val file = fileFor(date)
-        if (!file.isFile) return null
-        return EntryFormat.parse(file.readText(Charsets.UTF_8), date)
+        val path = entryPath(date)
+        val content = tree.readText(path) ?: recoverFromTemp(path) ?: return null
+        return EntryFormat.parse(content, date)
     }
 
     override fun save(date: LocalDate, text: String): SaveResult {
-        val file = fileFor(date)
+        val path = entryPath(date)
         val existing = load(date)
         val normalized = EntryFormat.normalizeText(text)
         val photos = existing?.photos.orEmpty()
 
         if (normalized.isEmpty() && photos.isEmpty()) {
-            if (file.exists() && !file.delete()) throw IOException("Konnte $file nicht löschen")
+            // Zuerst eine alte Zwischendatei entfernen, sonst würde load() sie wiederbeleben.
+            tree.delete(tempPath(path))
+            tree.delete(path)
             return SaveResult.DELETED
         }
 
@@ -77,29 +86,26 @@ class FileJournalStore(
             photos = photos,
             extraFrontmatter = existing?.extraFrontmatter.orEmpty(),
         )
-        writeAtomically(file, EntryFormat.serialize(entry))
+        writeSafely(path, EntryFormat.serialize(entry))
         return SaveResult.SAVED
     }
 
-    private fun writeAtomically(target: File, content: String) {
-        val dir = target.parentFile ?: throw IOException("Kein Ordner für $target")
-        if (!dir.isDirectory && !dir.mkdirs()) throw IOException("Konnte $dir nicht anlegen")
+    private fun writeSafely(path: String, content: String) {
+        val temp = tempPath(path)
+        tree.writeText(temp, content)
+        tree.delete(path)
+        tree.rename(temp, splitPath(path).second)
+    }
 
-        // Mit Punkt am Anfang, damit andere Programme die Zwischendatei ignorieren.
-        val temp = File(dir, ".${target.name}.tmp")
+    /** Fehlt die Datei, aber die Zwischendatei ist da, war der Absturz zwischen Löschen und Umbenennen. */
+    private fun recoverFromTemp(path: String): String? {
+        val temp = tempPath(path)
+        val content = tree.readText(temp) ?: return null
         try {
-            FileOutputStream(temp).use { out ->
-                out.write(content.toByteArray(Charsets.UTF_8))
-                out.fd.sync() // Wirklich auf den Speicher schreiben, bevor umbenannt wird.
-            }
-            Files.move(
-                temp.toPath(),
-                target.toPath(),
-                StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING,
-            )
-        } finally {
-            temp.delete()
+            tree.rename(temp, splitPath(path).second)
+        } catch (e: IOException) {
+            // Inhalt trotzdem anzeigen; beim nächsten Speichern wird die Datei ordentlich geschrieben.
         }
+        return content
     }
 }

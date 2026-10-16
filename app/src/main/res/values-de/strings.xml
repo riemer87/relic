@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Freitag · 9. Oktober" -->
     <string name="entry_date_pattern">EEEE · d. MMMM</string>
     <string name="entry_title_today">Etwas zu heute</string>
@@ -8,4 +8,33 @@
     <string name="entry_removed">Eintrag entfernt</string>
     <string name="entry_load_failed">Der Eintrag konnte nicht geladen werden.</string>
     <string name="entry_save_failed">Der Eintrag konnte nicht gespeichert werden.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+
+    <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <string name="folder_title">Wo soll dein Tagebuch liegen?</string>
+    <string name="folder_text">Relic speichert jeden Eintrag als ganz normale Datei auf deinem Handy. So kannst du deine Einträge immer öffnen, auch ohne diese App.</string>
+    <string name="folder_recommended">Empfohlenen Ordner verwenden</string>
+    <string name="folder_recommended_detail">Dokumente › Relic</string>
+    <string name="folder_own">Eigenen Ordner wählen</string>
+    <string name="folder_own_detail">Zum Beispiel einen Ordner, den du mit der Cloud synchronisierst</string>
+    <string name="folder_existing">Ich habe schon ein Relic-Tagebuch</string>
+    <string name="folder_footnote">Du kannst das später jederzeit in den Einstellungen ändern.</string>
+    <string name="folder_hint">Android fragt dich gleich, ob Relic diesen Ordner benutzen darf. Tippe auf „Diesen Ordner verwenden“ und dann auf „Zulassen“.</string>
+
+    <!-- Ordner-Bildschirm: Ergänzungen -->
+    <string name="folder_hint_existing">Android öffnet gleich die Ordnerauswahl. Suche dort deinen Ordner „Relic“ (meist unter „Dokumente“), öffne ihn und tippe auf „Diesen Ordner verwenden“. Bestätige danach mit „Zulassen“, dass Relic darauf zugreifen darf.</string>
+    <string name="folder_hint_create">Lege dort zuerst über „Neuer Ordner“ einen Ordner „Relic“ an und öffne ihn.</string>
+    <string name="folder_continue">Weiter</string>
+    <string name="folder_found_journal">In diesem Ordner liegt schon ein Relic-Tagebuch. Möchtest du es verbinden?</string>
+    <string name="folder_connect">Verbinden</string>
+    <string name="folder_no_journal">In diesem Ordner wurde kein Relic-Tagebuch gefunden. Trotzdem verwenden?</string>
+    <string name="folder_use_anyway">Trotzdem verwenden</string>
+    <string name="folder_choose_other">Anderen Ordner wählen</string>
+    <string name="folder_access_failed">Relic kann nicht auf diesen Ordner zugreifen. Bitte wähle einen anderen.</string>
+
+    <!-- Erklär-Datei im Journal-Ordner -->
+    <string name="readme_file_name">LIES MICH.txt</string>
+    <string name="readme_text" tools:ignore="TypographyDashes">Das ist dein Relic-Tagebuch.\n\nJeder Tag mit einem Eintrag ist eine eigene Textdatei. Die Dateien liegen in Ordnern nach Jahr und Monat, zum Beispiel:\n\n2026/10/2026-10-09.md\n\nDu kannst sie mit jedem Texteditor öffnen, auch ohne die Relic-App.\n\nSo ist eine Datei aufgebaut:\n\n- Ganz oben, zwischen zwei Linien aus drei Strichen (---), stehen das Datum und wann der Eintrag angelegt und zuletzt geändert wurde.\n- Darunter steht dein Text. Er ist in Markdown geschrieben: **fett**, *kursiv* und Aufzählungen mit einem Strich am Zeilenanfang.\n- Fotos liegen als JPEG-Dateien neben dem Eintrag (zum Beispiel 2026-10-09_1.jpg). Am Ende des Textes stehen sie nach der Zeile &lt;!-- relic:photos --&gt; noch einmal, damit auch andere Programme sie anzeigen können.\n\nTipp: Sichere diesen Ordner regelmäßig, zum Beispiel auf einen Computer oder in die Cloud.\n</string>
 </resources>

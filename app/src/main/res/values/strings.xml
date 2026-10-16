@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Relic</string>
 
     <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Friday · October 9" -->
@@ -11,4 +11,33 @@
     <string name="entry_removed">Entry removed</string>
     <string name="entry_load_failed">Could not load the entry.</string>
     <string name="entry_save_failed">Could not save the entry.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <string name="folder_title">Where should your journal live?</string>
+    <string name="folder_text">Relic saves every entry as a plain file on your phone. That way you can always open your entries, even without this app.</string>
+    <string name="folder_recommended">Use recommended folder</string>
+    <string name="folder_recommended_detail">Documents › Relic</string>
+    <string name="folder_own">Choose my own folder</string>
+    <string name="folder_own_detail">For example, a folder you sync to the cloud</string>
+    <string name="folder_existing">I already have a Relic journal</string>
+    <string name="folder_footnote">You can change this anytime in Settings.</string>
+    <string name="folder_hint">Android will ask whether Relic may use this folder. Tap “Use this folder”, then “Allow”.</string>
+
+    <!-- Ordner-Bildschirm: Ergänzungen -->
+    <string name="folder_hint_existing">Android will open the folder picker. Find your “Relic” folder there (usually under “Documents”), open it and tap “Use this folder”. Then tap “Allow” so Relic may access it.</string>
+    <string name="folder_hint_create">First create a folder named “Relic” using “New folder” and open it.</string>
+    <string name="folder_continue">Continue</string>
+    <string name="folder_found_journal">This folder already contains a Relic journal. Do you want to connect it?</string>
+    <string name="folder_connect">Connect</string>
+    <string name="folder_no_journal">No Relic journal was found in this folder. Use it anyway?</string>
+    <string name="folder_use_anyway">Use anyway</string>
+    <string name="folder_choose_other">Choose another folder</string>
+    <string name="folder_access_failed">Relic cannot access this folder. Please choose a different one.</string>
+
+    <!-- Erklär-Datei im Journal-Ordner -->
+    <string name="readme_file_name">README.txt</string>
+    <string name="readme_text" tools:ignore="TypographyDashes">This is your Relic journal.\n\nEvery day with an entry is its own text file. The files are sorted into folders by year and month, for example:\n\n2026/10/2026-10-09.md\n\nYou can open them with any text editor, even without the Relic app.\n\nHow a file is built:\n\n- At the very top, between two lines of three dashes (---), you find the date and when the entry was created and last changed.\n- Below that is your text. It is written in Markdown: **bold**, *italic*, and lists with a dash at the start of a line.\n- Photos are stored as JPEG files next to the entry (for example 2026-10-09_1.jpg). At the end of the text they are listed again after the line &lt;!-- relic:photos --&gt; so that other programs can show them.\n\nTip: Back up this folder regularly, for example to a computer or the cloud.\n</string>
 </resources>
