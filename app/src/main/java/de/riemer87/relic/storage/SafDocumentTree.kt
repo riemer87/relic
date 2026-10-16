@@ -9,6 +9,7 @@ import de.riemer87.relic.journal.DocumentTree
 import de.riemer87.relic.journal.splitPath
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
 import java.io.SyncFailedException
 
 /**
@@ -45,7 +46,12 @@ class SafDocumentTree(
         input.use { it.readBytes().toString(Charsets.UTF_8) }
     }
 
-    override fun writeText(path: String, content: String) = io {
+    override fun openRead(path: String): InputStream? = io {
+        val doc = find(path)?.takeIf { !it.isDir } ?: return@io null
+        resolver.openInputStream(uriOf(doc))
+    }
+
+    override fun writeBytes(path: String, content: ByteArray) = io {
         val (dirPath, name) = splitPath(path)
         val parent = ensureDir(dirPath)
         val existing = children(parent.id).firstOrNull { it.name == name }
@@ -54,7 +60,7 @@ class SafDocumentTree(
         // "wt" = schreiben und vorhandenen Inhalt vorher abschneiden.
         val descriptor = resolver.openFileDescriptor(target, "wt") ?: throw IOException("Konnte $path nicht öffnen")
         ParcelFileDescriptor.AutoCloseOutputStream(descriptor).use { out ->
-            out.write(content.toByteArray(Charsets.UTF_8))
+            out.write(content)
             out.flush()
             try {
                 out.fd.sync() // Wirklich auf den Speicher schreiben, bevor es weitergeht.

@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import de.riemer87.relic.journal.TreeJournalStore
+import de.riemer87.relic.photos.PhotoProcessor
 import de.riemer87.relic.storage.JournalLocation
 import de.riemer87.relic.storage.SafDocumentTree
 import de.riemer87.relic.ui.RelicApp
@@ -40,6 +41,9 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
         location = JournalLocation(applicationContext)
+        val photoProcessor = PhotoProcessor(applicationContext)
+        // Übrig gebliebene Fotos aus dem Zwischenspeicher (nur beim echten Start, nicht beim Drehen).
+        if (savedInstanceState == null) photoProcessor.clearPending()
 
         lifecycleScope.launch {
             journalUri = withContext(Dispatchers.IO) { location.accessibleUri() }
@@ -56,7 +60,7 @@ class MainActivity : ComponentActivity() {
                     // Neuer Ordner = alles neu aufbauen, damit keine Seite noch den alten Ordner benutzt.
                     key(uri) {
                         val store = remember { TreeJournalStore(SafDocumentTree(contentResolver, uri)) }
-                        RelicApp(store = store, clock = Clock.systemDefaultZone())
+                        RelicApp(store = store, clock = Clock.systemDefaultZone(), photoPreparer = photoProcessor::prepare)
                     }
                 }
             }

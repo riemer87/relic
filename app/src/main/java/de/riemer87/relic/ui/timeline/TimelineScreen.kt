@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,10 +48,13 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
 import de.riemer87.relic.journal.DayLabel
+import de.riemer87.relic.journal.MAX_PHOTOS
+import de.riemer87.relic.journal.StoredPhoto
 import de.riemer87.relic.journal.Timeline
 import de.riemer87.relic.journal.TimelineDay
 import de.riemer87.relic.ui.DateText
 import de.riemer87.relic.ui.currentLocale
+import de.riemer87.relic.ui.photos.PhotoImage
 import de.riemer87.relic.ui.theme.FrauncesDisplay
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
@@ -131,7 +135,7 @@ internal fun TimelineContent(
 private fun TimelineItem(
     day: TimelineDay,
     today: LocalDate,
-    preview: String?,
+    preview: DayPreview?,
     isFirst: Boolean,
     isLast: Boolean,
     onClick: () -> Unit,
@@ -235,13 +239,35 @@ private fun TimelineItem(
                     color = if (isToday) colors.accent else colors.inkFaint,
                 )
                 when {
-                    day.hasEntry -> Text(
-                        text = preview.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = colors.ink,
-                        maxLines = PREVIEW_MAX_LINES,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    day.hasEntry -> {
+                        val text = preview?.text.orEmpty()
+                        if (text.isNotEmpty()) {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = colors.ink,
+                                maxLines = PREVIEW_MAX_LINES,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        val photos = preview?.photos.orEmpty()
+                        if (photos.isNotEmpty()) {
+                            val thumbPx = with(LocalDensity.current) { 44.dp.roundToPx() } * 2
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.padding(top = 6.dp),
+                            ) {
+                                photos.take(MAX_PHOTOS).forEach { name ->
+                                    PhotoImage(
+                                        date = day.date,
+                                        photo = StoredPhoto(name),
+                                        maxEdgePx = thumbPx,
+                                        modifier = Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)),
+                                    )
+                                }
+                            }
+                        }
+                    }
                     isToday -> Text(
                         text = stringResource(R.string.entry_text_placeholder),
                         style = MaterialTheme.typography.bodyMedium,
@@ -270,8 +296,8 @@ private fun TimelinePreview() {
                 today = today,
                 days = Timeline.days(today, entries),
                 previews = mapOf(
-                    LocalDate.of(2026, 10, 14) to "Spaziergang am Fluss, abends gekocht. Die Blätter werden schon gelb.",
-                    LocalDate.of(2026, 9, 1) to "Erster Schultag.",
+                    LocalDate.of(2026, 10, 14) to DayPreview("Spaziergang am Fluss, abends gekocht. Die Blätter werden schon gelb.", emptyList()),
+                    LocalDate.of(2026, 9, 1) to DayPreview("Erster Schultag.", emptyList()),
                 ),
                 isLoading = false,
             ),

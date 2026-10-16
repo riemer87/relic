@@ -3,6 +3,7 @@ package de.riemer87.relic.journal
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
 
 /** [DocumentTree] über einen normalen Ordner – nur für Tests auf dem PC. Verhält sich streng wie SAF. */
 class FileDocumentTree(private val root: File) : DocumentTree {
@@ -17,12 +18,14 @@ class FileDocumentTree(private val root: File) : DocumentTree {
     override fun readText(path: String): String? =
         file(path).takeIf { it.isFile }?.readText(Charsets.UTF_8)
 
-    override fun writeText(path: String, content: String) {
+    override fun writeBytes(path: String, content: ByteArray) {
         val target = file(path)
         val dir = target.parentFile!!
         if (!dir.isDirectory && !dir.mkdirs()) throw IOException("Konnte $dir nicht anlegen")
-        target.writeText(content, Charsets.UTF_8)
+        target.writeBytes(content)
     }
+
+    override fun openRead(path: String): InputStream? = file(path).takeIf { it.isFile }?.inputStream()
 
     override fun rename(path: String, newName: String) {
         val source = file(path)
@@ -41,7 +44,7 @@ class FileDocumentTree(private val root: File) : DocumentTree {
 
 /**
  * Wie [FileDocumentTree], stürzt aber gezielt bei einem bestimmten Schritt ab.
- * Bei `writeText` wird vor dem Absturz nur die Hälfte geschrieben – wie bei leerem Akku.
+ * Beim Schreiben wird vor dem Absturz nur die Hälfte geschrieben – wie bei leerem Akku.
  */
 class CrashingDocumentTree(
     private val delegate: DocumentTree,
@@ -50,12 +53,14 @@ class CrashingDocumentTree(
 
     class SimulatedCrash : IOException("Simulierter Absturz")
 
-    override fun writeText(path: String, content: String) {
+    override fun writeText(path: String, content: String) = writeBytes(path, content.toByteArray(Charsets.UTF_8))
+
+    override fun writeBytes(path: String, content: ByteArray) {
         if (crashOn("write", path)) {
-            delegate.writeText(path, content.take(content.length / 2))
+            delegate.writeBytes(path, content.copyOf(content.size / 2))
             throw SimulatedCrash()
         }
-        delegate.writeText(path, content)
+        delegate.writeBytes(path, content)
     }
 
     override fun rename(path: String, newName: String) {

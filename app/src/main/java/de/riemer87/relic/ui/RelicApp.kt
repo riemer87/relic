@@ -9,6 +9,7 @@ import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -21,8 +22,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import de.riemer87.relic.journal.JournalStore
 import de.riemer87.relic.journal.localToday
+import de.riemer87.relic.photos.LocalPhotoLoader
+import de.riemer87.relic.photos.PhotoLoader
 import de.riemer87.relic.ui.entry.EntryScreen
 import de.riemer87.relic.ui.entry.EntryViewModel
+import de.riemer87.relic.ui.entry.PhotoPreparer
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.timeline.TimelineScreen
 import de.riemer87.relic.ui.timeline.TimelineViewModel
@@ -35,56 +39,66 @@ private const val ENTRY = "entry/{date}"
 
 /** Die App, sobald ein Journal-Ordner eingerichtet ist: Zeitstrahl als Start, Eintragsseite pro Tag. */
 @Composable
-fun RelicApp(store: JournalStore, clock: Clock) {
+fun RelicApp(
+    store: JournalStore,
+    clock: Clock,
+    photoPreparer: PhotoPreparer,
+    photoLoader: PhotoLoader = remember(store) { PhotoLoader(store) },
+) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
-    val showMessage: (Int) -> Unit = { message ->
+    val showMessage: (String) -> Unit = { message ->
         scope.launch {
             snackbarHostState.currentSnackbarData?.dismiss()
-            snackbarHostState.showSnackbar(resources.getString(message))
+            snackbarHostState.showSnackbar(message)
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Relic.colors.paper,
-        // Die Tastatur zählt als freizuhaltender Bereich, damit Inhalt und Meldungen über ihr bleiben.
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = TIMELINE,
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            composable(TIMELINE) {
-                TimelineScreen(
-                    viewModel = viewModel(factory = viewModelFactory { initializer { TimelineViewModel(store, clock) } }),
-                    onOpenDay = { date ->
-                        // Doppeltes Tippen öffnet die Seite nicht zweimal.
-                        if (navController.currentDestination?.route == TIMELINE) {
-                            navController.navigate("entry/$date")
-                        }
-                    },
-                )
-            }
-            composable(ENTRY) { backStackEntry ->
-                val date = backStackEntry.arguments?.getString("date")
-                    ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-                    ?.takeIf { !it.isAfter(localToday(clock)) } // Zukunft ist nicht erreichbar.
-                if (date == null) {
-                    navController.popBackStack(TIMELINE, inclusive = false)
-                    return@composable
+    CompositionLocalProvider(LocalPhotoLoader provides photoLoader) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = Relic.colors.paper,
+            // Die Tastatur zählt als freizuhaltender Bereich, damit Inhalt und Meldungen über ihr bleiben.
+            contentWindowInsets = ScaffoldDefaults.contentWindowInsets.union(WindowInsets.ime),
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = TIMELINE,
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                composable(TIMELINE) {
+                    TimelineScreen(
+                        viewModel = viewModel(factory = viewModelFactory { initializer { TimelineViewModel(store, clock) } }),
+                        onOpenDay = { date ->
+                            // Doppeltes Tippen öffnet die Seite nicht zweimal.
+                            if (navController.currentDestination?.route == TIMELINE) {
+                                navController.navigate("entry/$date")
+                            }
+                        },
+                    )
                 }
-                EntryScreen(
-                    viewModel = viewModel(factory = viewModelFactory { initializer { EntryViewModel(store, date, clock) } }),
-                    onClose = { message ->
+                composable(ENTRY) { backStackEntry ->
+                    val date = backStackEntry.arguments?.getString("date")
+                        ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+                        ?.takeIf { !it.isAfter(localToday(clock)) } // Zukunft ist nicht erreichbar.
+                    if (date == null) {
                         navController.popBackStack(TIMELINE, inclusive = false)
-                        message?.let(showMessage)
-                    },
-                    showMessage = showMessage,
-                )
+                        return@composable
+                    }
+                    EntryScreen(
+                        viewModel = viewModel(
+                            factory = viewModelFactory { initializer { EntryViewModel(store, date, clock, photoPreparer) } },
+                        ),
+                        onClose = { message ->
+                            photoLoader.forget(date) // Fotos können neue Dateinamen bekommen haben.
+                            navController.popBackStack(TIMELINE, inclusive = false)
+                            message?.let { showMessage(resources.getString(it)) }
+                        },
+                        showMessage = showMessage,
+                    )
+                }
             }
         }
     }

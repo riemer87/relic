@@ -1,6 +1,7 @@
 package de.riemer87.relic.journal
 
 import java.io.IOException
+import java.io.InputStream
 
 /**
  * Ein Ordner mit Unterordnern und Dateien, angesprochen über Pfade relativ zur Wurzel
@@ -23,7 +24,15 @@ interface DocumentTree {
 
     /** Schreibt eine Datei vollständig neu. Fehlende Ordner werden angelegt. */
     @Throws(IOException::class)
-    fun writeText(path: String, content: String)
+    fun writeText(path: String, content: String) = writeBytes(path, content.toByteArray(Charsets.UTF_8))
+
+    /** Wie [writeText], für Binärdateien (Fotos). */
+    @Throws(IOException::class)
+    fun writeBytes(path: String, content: ByteArray)
+
+    /** Öffnet eine Datei zum Lesen, oder `null`, wenn es sie nicht gibt. Aufrufer muss schließen. */
+    @Throws(IOException::class)
+    fun openRead(path: String): InputStream?
 
     /** Benennt eine Datei im selben Ordner um. Unter dem neuen Namen darf noch nichts liegen. */
     @Throws(IOException::class)

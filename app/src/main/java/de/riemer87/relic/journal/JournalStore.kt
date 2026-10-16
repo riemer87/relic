@@ -1,6 +1,7 @@
 package de.riemer87.relic.journal
 
 import java.io.IOException
+import java.io.InputStream
 import java.time.Clock
 import java.time.LocalDate
 import java.time.OffsetDateTime
@@ -23,13 +24,20 @@ interface JournalStore {
     @Throws(IOException::class)
     fun load(date: LocalDate): Entry?
 
-    /** Speichert den Text eines Tages. Leerer Text ohne Fotos löscht die Datei. */
+    /**
+     * Speichert Text und Fotos eines Tages. Leerer Text ohne Fotos löscht die Datei.
+     * @param photos die Fotos in gewünschter Reihenfolge; `null` = vorhandene Fotos unverändert lassen.
+     */
     @Throws(IOException::class)
-    fun save(date: LocalDate, text: String): SaveResult
+    fun save(date: LocalDate, text: String, photos: List<DayPhoto>? = null): SaveResult
 
     /** Alle Tage, für die es eine Eintragsdatei gibt. */
     @Throws(IOException::class)
     fun entryDates(): Set<LocalDate>
+
+    /** Öffnet ein Foto eines Tages zum Lesen, oder `null`, wenn es fehlt. Aufrufer muss schließen. */
+    @Throws(IOException::class)
+    fun openPhoto(date: LocalDate, fileName: String): InputStream?
 }
 
 /** Das heutige Datum nach Ortszeit – nie über UTC, sonst landen späte Einträge beim falschen Tag. */
@@ -69,30 +77,62 @@ class TreeJournalStore(
         return EntryFormat.parse(content, date)
     }
 
-    override fun save(date: LocalDate, text: String): SaveResult {
+    /**
+     * Reihenfolge, damit ein Absturz nie einen Eintrag hinterlässt, der auf ein fehlendes Foto zeigt:
+     * 1. neue Fotos schreiben, 2. Eintragsdatei schreiben (oder löschen), 3. entfernte Fotos löschen.
+     * Stürzt es nach 1 ab, liegen höchstens Fotos zu viel im Ordner – nie fehlt eins.
+     */
+    override fun save(date: LocalDate, text: String, photos: List<DayPhoto>?): SaveResult {
         val path = entryPath(date)
+        val dir = splitPath(path).first
         val existing = load(date)
         val normalized = EntryFormat.normalizeText(text)
-        val photos = existing?.photos.orEmpty()
+        val oldNames = existing?.photos.orEmpty()
 
-        if (normalized.isEmpty() && photos.isEmpty()) {
+        // 1. Neue Fotos unter freien Namen ablegen.
+        val newNames = if (photos == null) {
+            oldNames
+        } else {
+            val taken = (oldNames + photos.filterIsInstance<StoredPhoto>().map { it.fileName } +
+                tree.list(dir).orEmpty()).toMutableSet()
+            photos.map { photo ->
+                when (photo) {
+                    is StoredPhoto -> photo.fileName
+                    is NewPhoto -> {
+                        val name = PhotoNames.nextFree(date, taken)
+                        taken += name
+                        writeSafely("$dir/$name", photo.jpeg())
+                        name
+                    }
+                }
+            }
+        }
+
+        // 2. Eintragsdatei schreiben oder löschen.
+        val result = if (normalized.isEmpty() && newNames.isEmpty()) {
             // Zuerst eine alte Zwischendatei entfernen, sonst würde load() sie wiederbeleben.
             tree.delete(tempPath(path))
             tree.delete(path)
-            return SaveResult.DELETED
+            SaveResult.DELETED
+        } else {
+            val now = OffsetDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS)
+            val entry = Entry(
+                date = date,
+                created = existing?.created ?: now,
+                updated = now,
+                text = normalized,
+                photos = newNames,
+                extraFrontmatter = existing?.extraFrontmatter.orEmpty(),
+            )
+            writeSafely(path, EntryFormat.serialize(entry).toByteArray(Charsets.UTF_8))
+            SaveResult.SAVED
         }
 
-        val now = OffsetDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS)
-        val entry = Entry(
-            date = date,
-            created = existing?.created ?: now,
-            updated = now,
-            text = normalized,
-            photos = photos,
-            extraFrontmatter = existing?.extraFrontmatter.orEmpty(),
-        )
-        writeSafely(path, EntryFormat.serialize(entry))
-        return SaveResult.SAVED
+        // 3. Fotos löschen, die der Eintrag nicht mehr benutzt. Nur eigene, nie fremde Dateien.
+        for (removed in oldNames - newNames.toSet()) {
+            if (PhotoNames.belongsTo(removed, date)) tree.delete("$dir/$removed")
+        }
+        return result
     }
 
     /**
@@ -119,9 +159,16 @@ class TreeJournalStore(
         return dates
     }
 
-    private fun writeSafely(path: String, content: String) {
+    override fun openPhoto(date: LocalDate, fileName: String): InputStream? {
+        // Namen stammen aus der Eintragsdatei und könnten von Hand verändert sein:
+        // nur Dateien direkt neben dem Eintrag, nie in anderen Ordnern.
+        if (fileName.isBlank() || '/' in fileName || '\\' in fileName || fileName.startsWith("..")) return null
+        return tree.openRead("${splitPath(entryPath(date)).first}/$fileName")
+    }
+
+    private fun writeSafely(path: String, content: ByteArray) {
         val temp = tempPath(path)
-        tree.writeText(temp, content)
+        tree.writeBytes(temp, content)
         tree.delete(path)
         tree.rename(temp, splitPath(path).second)
     }

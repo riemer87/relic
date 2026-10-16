@@ -20,11 +20,14 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
+/** Was ein Tag im Zeitstrahl zeigt: wenige Zeilen Text und die Fotos. */
+data class DayPreview(val text: String, val photos: List<String>)
+
 data class TimelineUiState(
     val today: LocalDate,
     val days: List<TimelineDay> = emptyList(),
-    /** Vorschautexte, nur für Tage, die schon sichtbar waren. */
-    val previews: Map<LocalDate, String> = emptyMap(),
+    /** Vorschau, nur für Tage, die schon sichtbar waren. */
+    val previews: Map<LocalDate, DayPreview> = emptyMap(),
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
 )
@@ -79,9 +82,12 @@ class TimelineViewModel(
         if (!requested.add(date)) return
         viewModelScope.launch {
             val preview = try {
-                withContext(Dispatchers.IO) { store.load(date)?.text?.let(Timeline::preview).orEmpty() }
+                withContext(Dispatchers.IO) {
+                    val entry = store.load(date)
+                    DayPreview(entry?.text?.let(Timeline::preview).orEmpty(), entry?.photos.orEmpty())
+                }
             } catch (e: IOException) {
-                ""
+                DayPreview("", emptyList())
             }
             _state.update { it.copy(previews = it.previews + (date to preview)) }
         }

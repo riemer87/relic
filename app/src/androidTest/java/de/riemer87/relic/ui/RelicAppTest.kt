@@ -7,6 +7,9 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.TextLayoutResult
@@ -45,7 +48,7 @@ class RelicAppTest {
 
     private fun start(store: FakeJournalStore) {
         rule.runOnUiThread { rule.activity.enableEdgeToEdge() }
-        rule.setContent { RelicTheme { RelicApp(store, clock) } }
+        rule.setContent { RelicTheme { RelicApp(store, clock, photoPreparer = { null }) } }
         rule.waitForIdle()
     }
 
@@ -70,7 +73,8 @@ class RelicAppTest {
      */
     private fun tapSave(store: FakeJournalStore) {
         val before = store.saveCount
-        rule.onNode(hasText(str(R.string.entry_save))).performClick()
+        // Direkt auslösen statt über die Bildschirmposition: Während die Tastatur hochfährt, rutscht der Knopf.
+        rule.onNode(hasText(str(R.string.entry_save))).performSemanticsAction(SemanticsActions.OnClick)
         rule.waitUntil(timeoutMillis = 5_000) { store.saveCount > before }
         rule.waitForIdle()
     }
@@ -85,6 +89,45 @@ class RelicAppTest {
         rule.onAllNodes(hasText(str(R.string.timeline_missing))).fetchSemanticsNodes().let {
             assertTrue("Leere Tage zeigen „nachtragen“", it.isNotEmpty())
         }
+    }
+
+    @Test
+    fun photosCanBeRemovedOnTheEntryPage() {
+        val store = FakeJournalStore(mapOf(today to "Mit Fotos"), initialPhotos = mapOf(today to 2))
+        start(store)
+
+        openDay(str(R.string.timeline_today))
+        waitForText("2 / 4")
+        rule.onNode(hasContentDescription(rule.activity.getString(R.string.photo_remove, 1))).performClick()
+        waitForText("1 / 4")
+        tapSave(store)
+
+        assertEquals(listOf("2026-10-16_2.jpg"), store.photosOf(today))
+    }
+
+    /** Wunsch aus Meilenstein 4: Wischen im Vollbild bleibt innerhalb des Tages. */
+    @Test
+    fun photoViewerSwipesOnlyWithinTheDay() {
+        val yesterday = today.minusDays(1)
+        start(FakeJournalStore(mapOf(yesterday to "Ausflug", today to "Heute"), initialPhotos = mapOf(yesterday to 2, today to 1)))
+
+        openDay(str(R.string.timeline_yesterday))
+        rule.onNode(hasContentDescription(rule.activity.getString(R.string.photo_number, 1))).performClick()
+        waitForText("1 / 2")
+
+        rule.onAllNodes(hasContentDescription(rule.activity.getString(R.string.photo_number, 1)))
+            .onLast().performTouchInput { swipeLeft() }
+        waitForText("2 / 2")
+
+        rule.onAllNodes(hasContentDescription(rule.activity.getString(R.string.photo_number, 2)))
+            .onLast().performTouchInput { swipeLeft() }
+        rule.waitForIdle()
+        rule.onNode(hasText("2 / 2")).assertExists() // am Ende des Tages ist Schluss
+
+        rule.onNode(hasContentDescription(str(R.string.photo_close))).performClick()
+        rule.waitForIdle()
+        rule.onNode(hasText("2 / 2")).assertDoesNotExist()
+        rule.onNode(hasText(str(R.string.entry_title_past))).assertExists()
     }
 
     /** Wunsch aus Meilenstein 3: Lange Einträge zeigen im Zeitstrahl höchstens 2 Zeilen. */

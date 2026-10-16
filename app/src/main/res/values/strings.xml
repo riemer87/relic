@@ -8,6 +8,17 @@
     <string name="entry_empty">Nothing written down.</string>
     <string name="action_back">Back</string>
     <string name="action_edit">Edit</string>
+    <string name="entry_photos">Photos</string>
+    <string name="photo_add">Add photo</string>
+    <string name="photo_remove">Remove photo %1$d</string>
+    <string name="photo_number">Photo %1$d</string>
+    <string name="photo_close">Close</string>
+    <string name="photo_failed">A photo could not be added.</string>
+    <plurals name="photo_limit">
+        <item quantity="one">At most %1$d photo per day.</item>
+        <item quantity="other">At most %1$d photos per day.</item>
+    </plurals>
+    <string name="photo_position" translatable="false">%1$d / %2$d</string>
     <string name="timeline_today">Today</string>
     <string name="timeline_yesterday">Yesterday</string>
     <string name="timeline_missing">Nothing written down – add it now →</string>

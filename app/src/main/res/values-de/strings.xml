@@ -6,6 +6,16 @@
     <string name="entry_empty">Nichts aufgeschrieben.</string>
     <string name="action_back">Zurück</string>
     <string name="action_edit">Bearbeiten</string>
+    <string name="entry_photos">Fotos</string>
+    <string name="photo_add">Foto hinzufügen</string>
+    <string name="photo_remove">Foto %1$d entfernen</string>
+    <string name="photo_number">Foto %1$d</string>
+    <string name="photo_close">Schließen</string>
+    <string name="photo_failed">Ein Foto konnte nicht übernommen werden.</string>
+    <plurals name="photo_limit">
+        <item quantity="one">Höchstens %1$d Foto pro Tag.</item>
+        <item quantity="other">Höchstens %1$d Fotos pro Tag.</item>
+    </plurals>
     <string name="timeline_today">Heute</string>
     <string name="timeline_yesterday">Gestern</string>
     <string name="timeline_missing">Nichts aufgeschrieben – nachtragen →</string>
