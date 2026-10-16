@@ -52,6 +52,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
+import de.riemer87.relic.lock.Authenticator
+import de.riemer87.relic.lock.canUseAppLock
 import de.riemer87.relic.storage.FolderLabel
 import de.riemer87.relic.ui.currentLocale
 import de.riemer87.relic.ui.theme.KickerStyle
@@ -66,10 +68,15 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onChangeFolder: () -> Unit,
     showMessage: (String) -> Unit,
+    lockEnabled: Boolean = false,
+    authenticator: Authenticator = Authenticator { it(false) },
+    onLockEnabledChange: (Boolean) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val deniedMessage = stringResource(R.string.settings_notifications_denied)
+    val lockFailedMessage = stringResource(R.string.lock_enable_failed)
+    val lockAvailable = remember { canUseAppLock(context) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshNotificationState() }
 
     // Android 13+: Erlaubnis für Benachrichtigungen erst beim Einschalten erfragen.
@@ -95,6 +102,16 @@ fun SettingsScreen(
             )
         },
         readLicense = { name -> context.assets.open("licenses/$name").bufferedReader().use { it.readText() } },
+        lockEnabled = lockEnabled,
+        lockAvailable = lockAvailable,
+        onLockChange = { on ->
+            if (on) {
+                // Erst einmal erfolgreich entsperren – so kann man sich nicht aussperren.
+                authenticator.authenticate { ok -> if (ok) onLockEnabledChange(true) else showMessage(lockFailedMessage) }
+            } else {
+                onLockEnabledChange(false)
+            }
+        },
     )
 }
 
@@ -107,6 +124,9 @@ internal fun SettingsContent(
     onTimeChange: (LocalTime) -> Unit,
     onOpenNotificationSettings: () -> Unit,
     readLicense: (String) -> String,
+    lockEnabled: Boolean = false,
+    lockAvailable: Boolean = true,
+    onLockChange: (Boolean) -> Unit = {},
 ) {
     val colors = Relic.colors
     var timeDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -145,17 +165,7 @@ internal fun SettingsContent(
                         modifier = Modifier.weight(1f),
                     )
                     Spacer(Modifier.padding(6.dp))
-                    Switch(
-                        checked = state.reminder.enabled,
-                        onCheckedChange = onReminderChange,
-                        colors = SwitchDefaults.colors(
-                            checkedTrackColor = colors.accent,
-                            checkedThumbColor = colors.onAccent,
-                            uncheckedTrackColor = colors.paper,
-                            uncheckedThumbColor = colors.inkFaint,
-                            uncheckedBorderColor = colors.rule,
-                        ),
-                    )
+                    RelicSwitch(checked = state.reminder.enabled, onCheckedChange = onReminderChange)
                 }
                 if (state.reminder.enabled) {
                     Row(
@@ -178,6 +188,24 @@ internal fun SettingsContent(
                         }
                     }
                 }
+            }
+
+            Section(title = stringResource(R.string.settings_lock)) {
+                if (lockAvailable || lockEnabled) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.settings_lock_explain),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colors.inkSoft,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Spacer(Modifier.padding(6.dp))
+                        RelicSwitch(checked = lockEnabled, onCheckedChange = onLockChange)
+                    }
+                } else {
+                    Text(stringResource(R.string.settings_lock_unavailable), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
+                }
+                Text(stringResource(R.string.settings_lock_files_note), style = MaterialTheme.typography.bodySmall, color = colors.inkFaint)
             }
 
             Section(title = stringResource(R.string.settings_about)) {
@@ -219,6 +247,23 @@ internal fun SettingsContent(
             containerColor = colors.sheet,
         )
     }
+}
+
+/** Schalter in Relic-Farben. */
+@Composable
+private fun RelicSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val colors = Relic.colors
+    Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        colors = SwitchDefaults.colors(
+            checkedTrackColor = colors.accent,
+            checkedThumbColor = colors.onAccent,
+            uncheckedTrackColor = colors.paper,
+            uncheckedThumbColor = colors.inkFaint,
+            uncheckedBorderColor = colors.rule,
+        ),
+    )
 }
 
 private val LICENSE_FILES = listOf("Fraunces-OFL.txt", "DMSans-OFL.txt")

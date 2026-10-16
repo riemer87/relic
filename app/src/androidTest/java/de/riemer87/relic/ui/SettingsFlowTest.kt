@@ -10,6 +10,8 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -78,7 +80,8 @@ class SettingsFlowTest {
         openSettings()
         rule.onNode(hasText(str(R.string.settings_reminder_time))).assertDoesNotExist()
 
-        rule.onNode(isToggleable()).performClick()
+        // Erster Schalter = Erinnerung (der zweite ist die App-Sperre).
+        rule.onAllNodes(isToggleable())[0].performSemanticsAction(SemanticsActions.OnClick)
         waitForText(str(R.string.settings_reminder_time))
 
         assertTrue(ReminderSettings(context).load().enabled)

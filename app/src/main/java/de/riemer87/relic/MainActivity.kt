@@ -4,18 +4,26 @@ import android.graphics.Color
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.os.Build
+import androidx.activity.viewModels
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import de.riemer87.relic.journal.TreeJournalStore
+import de.riemer87.relic.lock.AppLockGate
+import de.riemer87.relic.lock.AppLockViewModel
+import de.riemer87.relic.lock.BiometricAuthenticator
 import de.riemer87.relic.photos.PhotoProcessor
 import de.riemer87.relic.reminder.ReminderReceiver
 import de.riemer87.relic.reminder.ReminderScheduler
@@ -30,7 +38,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Clock
 
-class MainActivity : ComponentActivity() {
+// FragmentActivity statt ComponentActivity: der Entsperr-Dialog von Android (androidx.biometric) braucht das.
+class MainActivity : FragmentActivity() {
+
+    private val appLock: AppLockViewModel by viewModels()
 
     private lateinit var location: JournalLocation
 
@@ -62,28 +73,59 @@ class MainActivity : ComponentActivity() {
             checked = true
         }
 
+        val authenticator = BiometricAuthenticator(this, getString(R.string.lock_prompt_title), getString(R.string.lock_prompt_subtitle))
+
         setContent {
             RelicTheme {
-                if (!checked) return@RelicTheme
-                val uri = journalUri
-                if (uri == null) {
-                    FolderSetupScreen(onFolderReady = { journalUri = it })
-                } else {
-                    // Neuer Ordner = alles neu aufbauen, damit keine Seite noch den alten Ordner benutzt.
-                    key(uri) {
-                        val store = remember { TreeJournalStore(SafDocumentTree(contentResolver, uri)) }
-                        RelicApp(
-                            store = store,
-                            clock = Clock.systemDefaultZone(),
-                            photoPreparer = photoProcessor::prepare,
-                            journalUri = uri,
-                            onFolderChanged = ::changeFolder,
-                            openTodayRequest = openTodayRequest,
-                        )
-                    }
+                val locked by appLock.locked.collectAsStateWithLifecycle()
+                val lockEnabled by appLock.enabled.collectAsStateWithLifecycle()
+                LaunchedEffect(lockEnabled) { hideFromRecents(lockEnabled) }
+                AppLockGate(locked = locked, authenticator = authenticator, onUnlocked = appLock::unlocked) {
+                    AppContent(photoProcessor, authenticator, lockEnabled)
                 }
             }
         }
+    }
+
+    @Composable
+    private fun AppContent(photoProcessor: PhotoProcessor, authenticator: BiometricAuthenticator, lockEnabled: Boolean) {
+        if (!checked) return
+        val uri = journalUri
+        if (uri == null) {
+            FolderSetupScreen(onFolderReady = { journalUri = it })
+            return
+        }
+        // Neuer Ordner = alles neu aufbauen, damit keine Seite noch den alten Ordner benutzt.
+        key(uri) {
+            val store = remember { TreeJournalStore(SafDocumentTree(contentResolver, uri)) }
+            RelicApp(
+                store = store,
+                clock = Clock.systemDefaultZone(),
+                photoPreparer = photoProcessor::prepare,
+                journalUri = uri,
+                onFolderChanged = ::changeFolder,
+                openTodayRequest = openTodayRequest,
+                authenticator = authenticator,
+                lockEnabled = lockEnabled,
+                onLockEnabledChange = appLock::setEnabled,
+            )
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        appLock.onForeground()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Beim Drehen geht die App nicht wirklich in den Hintergrund.
+        if (!isChangingConfigurations) appLock.onBackground()
+    }
+
+    /** Bei aktiver Sperre zeigt die App-Übersicht kein Bild vom Inhalt (Android 13+). */
+    private fun hideFromRecents(hide: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setRecentsScreenshotEnabled(!hide)
     }
 
     override fun onNewIntent(intent: Intent) {

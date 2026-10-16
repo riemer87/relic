@@ -28,6 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import de.riemer87.relic.R
 import de.riemer87.relic.journal.JournalStore
 import de.riemer87.relic.journal.localToday
+import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.photos.LocalPhotoLoader
 import de.riemer87.relic.photos.PhotoLoader
 import de.riemer87.relic.ui.archive.ArchiveScreen
@@ -67,6 +68,9 @@ fun RelicApp(
     journalUri: Uri? = null,
     onFolderChanged: (Uri) -> Unit = {},
     openTodayRequest: Int = 0,
+    authenticator: Authenticator = Authenticator { it(false) },
+    lockEnabled: Boolean = false,
+    onLockEnabledChange: (Boolean) -> Unit = {},
 ) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -120,6 +124,9 @@ fun RelicApp(
                         onBack = { if (navController.currentDestination?.route == SETTINGS) navController.popBackStack() },
                         onChangeFolder = { navigateFrom(SETTINGS, FOLDER) },
                         showMessage = showMessage,
+                        lockEnabled = lockEnabled,
+                        authenticator = authenticator,
+                        onLockEnabledChange = onLockEnabledChange,
                     )
                 }
                 composable(FOLDER) {
