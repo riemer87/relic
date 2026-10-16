@@ -1,0 +1,185 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relic Nachtragen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap">
+<style>
+  /* Layout: drei Probe-Handys in Reihenfolge des Ablaufs: Zeitstrahl mit Archiv-Knopf oben rechts,
+     Archiv mit gestricheltem Blatt „Einen Tag nachtragen“ am Ende der Monatsliste, Datumsauswahl als Dialog.
+     Papier-Thema wie in der App. */
+  :root {
+    --page: #ebe6dd; --page-ink: #26241f; --page-soft: #5e5950; --page-faint: #958e83;
+    --bg: #efe9df; --sheet: #f8f4ec; --ink: #24221e; --ink-soft: #5f5a51; --ink-faint: #9b9488; --rule: #c9c0b2;
+    --scrim: rgba(36, 34, 30, .45);
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  }
+  html { background: var(--page); }
+  body {
+    background: var(--page); color: var(--page-ink); font-family: var(--sans); font-size: 15px; line-height: 1.55;
+    padding-block: 40px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 32px; }
+  header { display: grid; gap: 10px; max-width: 66ch; }
+  .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--page-faint); }
+  h1 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; text-wrap: balance; font-variation-settings: "opsz" 144, "SOFT" 50; }
+  header p { margin: 0; color: var(--page-soft); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: start; }
+  .option { display: grid; gap: 12px; }
+  .option h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 21px; font-variation-settings: "opsz" 72, "SOFT" 50; }
+  .option > p { margin: 0; color: var(--page-soft); font-size: 14px; }
+
+  .phone { background: var(--bg); color: var(--ink); border-radius: 28px; overflow: hidden; border: 1px solid rgba(0,0,0,.06); position: relative; display: grid; align-content: start; min-height: 720px; }
+  .serif { font-family: var(--serif); font-variation-settings: "opsz" 72, "SOFT" 50; }
+  .status { height: 22px; }
+  .kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  .num { display: grid; line-height: 1; align-content: start; }
+  .num b { font-family: var(--serif); font-weight: 400; font-size: 32px; font-variation-settings: "opsz" 144, "SOFT" 100; }
+  .num small { font-size: 10px; letter-spacing: .12em; color: var(--ink-faint); margin-top: 5px; }
+
+  /* Zeitstrahl-Kopf */
+  .head { padding: 8px 14px 4px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .word { font-size: 29px; font-weight: 600; letter-spacing: -.01em; }
+  .archbtn { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 500; color: var(--ink); padding: 8px 12px; border-radius: 999px; border: 1.5px solid var(--rule); }
+  .archbtn svg { width: 18px; height: 18px; }
+  .highlight { outline: 2px dashed var(--ink-soft); outline-offset: 4px; border-radius: 999px; }
+  .timeline { padding: 12px 18px 8px 14px; display: grid; }
+  .day { display: grid; grid-template-columns: 22px 1fr; column-gap: 10px; position: relative; padding-bottom: 10px; }
+  .day::before { content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 1.5px; background: var(--rule); }
+  .day:first-child::before { top: 20px; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; margin: 14px 0 0 5px; box-sizing: border-box; border: 1.5px solid var(--ink-soft); background: var(--bg); position: relative; z-index: 1; }
+  .day.today .dot { background: var(--ink); border-color: var(--ink); }
+  .day.empty .dot { border-color: var(--rule); }
+  .tsheet { background: var(--sheet); border-radius: 10px; padding: 10px 12px 12px; display: grid; grid-template-columns: 40px 1fr; column-gap: 10px; }
+  .day.empty .tsheet { background: transparent; border: 1.5px dashed var(--rule); padding: 8.5px 10.5px 10.5px; }
+  .tsheet .num b { font-size: 28px; }
+  .day.empty .num b { color: var(--ink-faint); }
+  .tsheet p { margin: 2px 0 0; font-size: 13.5px; }
+  .missing { color: var(--ink-soft); font-style: italic; }
+
+  /* Archiv */
+  .topbar { display: flex; align-items: center; padding: 8px 18px 0; font-size: 22px; }
+  .title { font-size: 29px; font-weight: 600; padding: 4px 20px 0; }
+  .picker { display: flex; align-items: center; justify-content: space-between; margin: 12px 16px 0; background: var(--sheet); border-radius: 10px; padding: 10px 14px; }
+  .picker .m { font-size: 22px; display: inline-flex; gap: 8px; align-items: baseline; }
+  .picker .m .caret { font-family: var(--sans); font-size: 13px; color: var(--ink-faint); }
+  .picker .arrows { display: flex; gap: 18px; font-size: 20px; color: var(--ink-soft); }
+  .count { padding: 14px 20px 2px; }
+  .list { padding: 8px 16px 18px; display: grid; gap: 10px; }
+  .entry { background: var(--sheet); border-radius: 10px; padding: 12px 14px 14px; display: grid; grid-template-columns: 46px 1fr; column-gap: 12px; }
+  .entry p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+  .photos { display: flex; gap: 6px; margin-top: 6px; }
+  .ph { width: 56px; height: 56px; border-radius: 8px; }
+  .p1 { background: linear-gradient(135deg, #b9a58a, #8d7b66); }
+  .p2 { background: linear-gradient(160deg, #9fb3a0, #6f8a6a); }
+  .add { border: 1.5px dashed var(--rule); border-radius: 10px; padding: 14px; display: flex; gap: 12px; align-items: center; color: var(--ink-soft); }
+  .add .plus { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--ink-soft); display: grid; place-items: center; font-size: 18px; line-height: 1; flex: 0 0 auto; }
+  .add b { display: block; color: var(--ink); font-weight: 500; font-size: 14px; }
+  .add small { font-size: 12.5px; }
+
+  /* Datumsauswahl */
+  .dim { position: absolute; inset: 0; background: var(--scrim); }
+  .dialog { position: absolute; left: 18px; right: 18px; top: 120px; background: var(--sheet); border-radius: 20px; padding: 20px 18px 14px; display: grid; gap: 12px; box-shadow: 0 20px 40px -20px rgba(0,0,0,.5); }
+  .dialog .q { font-size: 21px; line-height: 1.2; }
+  .dialog .sel { font-size: 13px; color: var(--ink-soft); }
+  .dmonth { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 500; }
+  .dmonth span:last-child { color: var(--ink-soft); letter-spacing: .3em; }
+  .dcal { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; row-gap: 2px; }
+  .dcal .wd { font-size: 10px; letter-spacing: .1em; color: var(--ink-faint); padding-bottom: 4px; }
+  .dcal .d { height: 34px; display: grid; place-items: center; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  .dcal .d.on span { background: var(--ink); color: var(--sheet); border-radius: 50%; width: 30px; height: 30px; display: grid; place-items: center; }
+  .dcal .d.today span { border: 1.5px solid var(--ink); border-radius: 50%; width: 30px; height: 30px; display: grid; place-items: center; }
+  .dcal .d.future { color: var(--rule); }
+  .dbtns { display: flex; justify-content: flex-end; gap: 22px; font-size: 14px; font-weight: 500; padding-top: 4px; }
+  .dbtns span:last-child { background: var(--ink); color: var(--sheet); padding: 7px 16px; border-radius: 8px; }
+
+  .note { display: grid; gap: 8px; max-width: 72ch; color: var(--page-soft); font-size: 14.5px; }
+  .note h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: 22px; color: var(--page-ink); }
+  .note ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Relic · Meilenstein 5 · Nachtragen</span>
+    <h1>Archiv oben im Zeitstrahl, Nachtragen im Archiv</h1>
+    <p>Der Ablauf von links nach rechts: Archiv-Knopf oben im Zeitstrahl, am Ende jedes Monats ein gestricheltes Blatt zum Nachtragen, dann die Datumsauswahl, in der nur vergangene Tage dieses Monats wählbar sind.</p>
+  </header>
+
+  <section class="grid">
+    <article class="option">
+      <h2>1 · Archiv-Knopf oben rechts</h2>
+      <p>Statt des Monatsnamens steht oben rechts „Archiv“. Später kommt das Zahnrad für die Einstellungen daneben.</p>
+      <div class="phone" aria-label="Probe Zeitstrahl mit Archiv-Knopf">
+        <div class="status"></div>
+        <div class="head">
+          <span class="word serif">Relic</span>
+          <span class="archbtn highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="4" width="17" height="5" rx="1.2"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/></svg>Archiv</span>
+        </div>
+        <div class="timeline">
+          <div class="day today"><span class="dot"></span><div class="tsheet"><div class="num"><b>16</b><small>FR</small></div><div><span class="kicker">Heute</span><p>Jo dies ist ein Testeintrag …</p></div></div></div>
+          <div class="day empty"><span class="dot"></span><div class="tsheet"><div class="num"><b>15</b><small>DO</small></div><div><span class="kicker">Gestern</span><p class="missing">Nichts aufgeschrieben – nachtragen →</p></div></div></div>
+          <div class="day empty"><span class="dot"></span><div class="tsheet"><div class="num"><b>14</b><small>MI</small></div><div><span class="kicker">Mittwoch</span><p class="missing">Nichts aufgeschrieben – nachtragen →</p></div></div></div>
+          <div class="day"><span class="dot"></span><div class="tsheet"><div class="num"><b>13</b><small>DI</small></div><div><span class="kicker">Dienstag</span><p>ich breche ab</p></div></div></div>
+          <div class="day"><span class="dot"></span><div class="tsheet"><div class="num"><b>12</b><small>MO</small></div><div><span class="kicker">Montag</span><p>challo</p></div></div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="option">
+      <h2>2 · Im Archiv: „Einen Tag nachtragen“</h2>
+      <p>Am Ende der Einträge eines Monats ein gestricheltes Blatt, im selben Stil wie leere Tage im Zeitstrahl. Es bezieht sich auf den gerade gezeigten Monat.</p>
+      <div class="phone" aria-label="Probe Archiv mit Nachtragen">
+        <div class="status"></div>
+        <div class="topbar">←</div>
+        <div class="title serif">Archiv</div>
+        <div class="picker"><span class="m serif">September 2026 <span class="caret">▾</span></span><span class="arrows"><span>‹</span><span>›</span></span></div>
+        <div class="count"><span class="kicker">3 Einträge</span></div>
+        <div class="list">
+          <div class="entry"><div class="num"><b>29</b><small>DI</small></div><div><p>Heute ging es mir schon besser. War noch immer etwas platt, hab aber im Home-Office viel geschafft.</p><div class="photos"><span class="ph p1"></span><span class="ph p2"></span></div></div></div>
+          <div class="entry"><div class="num"><b>27</b><small>SO</small></div><div><p>Radtour an der Elbe, das neue Fahrrad läuft wunderbar.</p></div></div>
+          <div class="entry"><div class="num"><b>21</b><small>MO</small></div><div><p>Erster richtiger Herbsttag. Tee, Buch, Decke.</p></div></div>
+          <div class="add highlight" style="border-radius:10px"><span class="plus">+</span><span><b>Einen Tag nachtragen</b><small>Einen Tag im September auswählen</small></span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="option">
+      <h2>3 · Tag auswählen</h2>
+      <p>Die Datumsauswahl von Android im Relic-Stil. Sie öffnet im gezeigten Monat, Zukunft ist nicht wählbar. „Öffnen“ führt auf die Eintragsseite, leere Tage gleich zum Schreiben.</p>
+      <div class="phone" aria-label="Probe Datumsauswahl">
+        <div class="status"></div>
+        <div class="topbar">←</div>
+        <div class="title serif">Archiv</div>
+        <div class="dim"></div>
+        <div class="dialog">
+          <span class="kicker">Tag nachtragen</span>
+          <span class="q serif">Mittwoch, 16. September</span>
+          <div class="dmonth"><span>September 2026</span><span>‹ ›</span></div>
+          <div class="dcal">
+            <span class="wd">M</span><span class="wd">D</span><span class="wd">M</span><span class="wd">D</span><span class="wd">F</span><span class="wd">S</span><span class="wd">S</span>
+            <span class="d"><span>1</span></span><span class="d"><span>2</span></span><span class="d"><span>3</span></span><span class="d"><span>4</span></span><span class="d"><span>5</span></span><span class="d"><span>6</span></span><span class="d"><span>7</span></span>
+            <span class="d"><span>8</span></span><span class="d"><span>9</span></span><span class="d"><span>10</span></span><span class="d"><span>11</span></span><span class="d"><span>12</span></span><span class="d"><span>13</span></span><span class="d"><span>14</span></span>
+            <span class="d"><span>15</span></span><span class="d on"><span>16</span></span><span class="d"><span>17</span></span><span class="d"><span>18</span></span><span class="d"><span>19</span></span><span class="d"><span>20</span></span><span class="d"><span>21</span></span>
+            <span class="d"><span>22</span></span><span class="d"><span>23</span></span><span class="d"><span>24</span></span><span class="d"><span>25</span></span><span class="d"><span>26</span></span><span class="d"><span>27</span></span><span class="d"><span>28</span></span>
+            <span class="d"><span>29</span></span><span class="d"><span>30</span></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span>
+          </div>
+          <div class="dbtns"><span>Abbrechen</span><span>Öffnen</span></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="note">
+    <h2>Gut zu wissen</h2>
+    <ul>
+      <li>Die Datumsauswahl kommt von Android selbst (Material 3) und wird nur in den Relic-Farben angezeigt. Eine neue Bibliothek ist nicht nötig.</li>
+      <li>Die Android-Auswahl kann Tage mit Eintrag nicht markieren. Wählt man einen Tag, der schon einen Eintrag hat, öffnet er sich einfach zum Lesen.</li>
+      <li>Im aktuellen Monat sind nur Tage bis heute wählbar.</li>
+    </ul>
+  </section>
+</div>
