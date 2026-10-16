@@ -3,6 +3,7 @@ package de.riemer87.relic.ui.folder
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,9 +13,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -25,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,11 +41,16 @@ import de.riemer87.relic.journal.FolderDecision
 import de.riemer87.relic.journal.FolderOption
 import de.riemer87.relic.ui.theme.RelicTheme
 
-/** „Wo soll dein Tagebuch liegen?“ – erscheint, solange kein Ordner eingerichtet ist. */
+/**
+ * „Wo soll dein Tagebuch liegen?“ – erscheint, solange kein Ordner eingerichtet ist,
+ * und aus den Einstellungen zum Wechseln des Ordners (dann mit [onBack] und [notice]).
+ */
 @Composable
 fun FolderSetupScreen(
     onFolderReady: (Uri) -> Unit,
     viewModel: FolderSetupViewModel = viewModel(),
+    onBack: (() -> Unit)? = null,
+    notice: String? = null,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -57,6 +67,8 @@ fun FolderSetupScreen(
 
     FolderSetupContent(
         state = state,
+        onBack = onBack,
+        notice = notice,
         onOptionSelected = viewModel::onOptionSelected,
         onHintConfirmed = {
             val initialUri = state.hint?.initialUri
@@ -76,6 +88,8 @@ fun FolderSetupScreen(
 @Composable
 private fun FolderSetupContent(
     state: FolderSetupUiState,
+    onBack: (() -> Unit)?,
+    notice: String?,
     onOptionSelected: (FolderOption) -> Unit,
     onHintConfirmed: () -> Unit,
     onHintDismissed: () -> Unit,
@@ -92,8 +106,24 @@ private fun FolderSetupContent(
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (onBack != null) {
+                IconButton(onClick = onBack, modifier = Modifier.padding(start = 0.dp)) {
+                    Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back))
+                }
+            }
             Text(stringResource(R.string.folder_title), style = MaterialTheme.typography.headlineMedium)
             Text(stringResource(R.string.folder_text), style = MaterialTheme.typography.bodyLarge)
+            if (notice != null) {
+                Text(
+                    text = notice,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(10.dp))
+                        .padding(14.dp),
+                )
+            }
             Spacer(Modifier.height(16.dp))
 
             Button(
@@ -182,6 +212,6 @@ private fun OptionDetail(text: String) {
 @Composable
 private fun FolderSetupPreview() {
     RelicTheme {
-        FolderSetupContent(FolderSetupUiState(), {}, {}, {}, {}, {}, {})
+        FolderSetupContent(FolderSetupUiState(), null, null, {}, {}, {}, {}, {}, {})
     }
 }

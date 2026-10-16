@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,6 +67,7 @@ fun TimelineScreen(
     viewModel: TimelineViewModel,
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
+    onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val previews by viewModel.previews.collectAsStateWithLifecycle()
@@ -77,6 +79,7 @@ fun TimelineScreen(
         previews = previews,
         onOpenDay = onOpenDay,
         onOpenArchive = onOpenArchive,
+        onOpenSettings = onOpenSettings,
         onDayVisible = viewModel::requestPreview,
     )
 }
@@ -88,6 +91,7 @@ internal fun TimelineContent(
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
     onDayVisible: (LocalDate) -> Unit,
+    onOpenSettings: () -> Unit = {},
 ) {
     val colors = Relic.colors
 
@@ -99,6 +103,9 @@ internal fun TimelineContent(
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = colors.ink)
             Spacer(Modifier.weight(1f))
             ArchiveButton(onClick = onOpenArchive)
+            IconButton(onClick = onOpenSettings) {
+                Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.action_settings), tint = colors.ink)
+            }
         }
 
         LazyColumn(
