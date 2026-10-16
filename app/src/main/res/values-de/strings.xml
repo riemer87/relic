@@ -1,0 +1,11 @@
+<resources>
+    <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Freitag · 9. Oktober" -->
+    <string name="entry_date_pattern">EEEE · d. MMMM</string>
+    <string name="entry_title_today">Etwas zu heute</string>
+    <string name="entry_text_placeholder">Was war heute?</string>
+    <string name="entry_save">Speichern</string>
+    <string name="entry_saved">Eintrag gespeichert</string>
+    <string name="entry_removed">Eintrag entfernt</string>
+    <string name="entry_load_failed">Der Eintrag konnte nicht geladen werden.</string>
+    <string name="entry_save_failed">Der Eintrag konnte nicht gespeichert werden.</string>
+</resources>

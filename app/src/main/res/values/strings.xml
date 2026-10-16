@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">Relic</string>
+    <string name="app_name" translatable="false">Relic</string>
+
+    <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Friday · October 9" -->
+    <string name="entry_date_pattern">EEEE · MMMM d</string>
+    <string name="entry_title_today">Something about today</string>
+    <string name="entry_text_placeholder">What happened today?</string>
+    <string name="entry_char_count" translatable="false">%1$d / %2$d</string>
+    <string name="entry_save">Save</string>
+    <string name="entry_saved">Entry saved</string>
+    <string name="entry_removed">Entry removed</string>
+    <string name="entry_load_failed">Could not load the entry.</string>
+    <string name="entry_save_failed">Could not save the entry.</string>
 </resources>

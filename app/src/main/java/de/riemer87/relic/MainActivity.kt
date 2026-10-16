@@ -4,44 +4,31 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import de.riemer87.relic.journal.FileJournalStore
 import de.riemer87.relic.ui.theme.RelicTheme
+import de.riemer87.relic.ui.today.TodayScreen
+import de.riemer87.relic.ui.today.TodayViewModel
+import java.io.File
+import java.time.Clock
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Bis Meilenstein 2: fester Ordner der App (Android/data/de.riemer87.relic/files/journal).
+        val journalDir = getExternalFilesDir("journal") ?: File(filesDir, "journal")
+        val factory = viewModelFactory {
+            initializer { TodayViewModel(FileJournalStore(journalDir), Clock.systemDefaultZone()) }
+        }
+
         setContent {
             RelicTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                TodayScreen(viewModel(factory = factory))
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RelicTheme {
-        Greeting("Android")
     }
 }
