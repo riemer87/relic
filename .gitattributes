@@ -1,0 +1,13 @@
+# Zeilenenden einheitlich halten, egal auf welchem Betriebssystem
+* text=auto eol=lf
+
+# Windows-Skripte brauchen Windows-Zeilenenden
+*.bat text eol=crlf
+
+# Binärdateien nie verändern
+*.jar binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.ttf binary
+*.otf binary
