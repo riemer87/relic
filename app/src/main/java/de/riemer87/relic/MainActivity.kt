@@ -1,24 +1,24 @@
 package de.riemer87.relic
 
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import de.riemer87.relic.journal.TreeJournalStore
 import de.riemer87.relic.storage.JournalLocation
 import de.riemer87.relic.storage.SafDocumentTree
+import de.riemer87.relic.ui.RelicApp
 import de.riemer87.relic.ui.folder.FolderSetupScreen
 import de.riemer87.relic.ui.theme.RelicTheme
-import de.riemer87.relic.ui.today.TodayScreen
-import de.riemer87.relic.ui.today.TodayViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,7 +34,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // Papier ist immer hell: dunkle Symbole in Status- und Navigationsleiste, auch wenn das Handy im Dunkelmodus ist.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         location = JournalLocation(applicationContext)
 
         lifecycleScope.launch {
@@ -49,8 +53,11 @@ class MainActivity : ComponentActivity() {
                 if (uri == null) {
                     FolderSetupScreen(onFolderReady = { journalUri = it })
                 } else {
-                    val todayViewModel: TodayViewModel = viewModel(key = uri.toString(), factory = todayFactory(uri))
-                    TodayScreen(todayViewModel)
+                    // Neuer Ordner = alles neu aufbauen, damit keine Seite noch den alten Ordner benutzt.
+                    key(uri) {
+                        val store = remember { TreeJournalStore(SafDocumentTree(contentResolver, uri)) }
+                        RelicApp(store = store, clock = Clock.systemDefaultZone())
+                    }
                 }
             }
         }
@@ -63,12 +70,6 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             val stillAccessible = withContext(Dispatchers.IO) { location.accessibleUri() } == current
             if (!stillAccessible && journalUri == current) journalUri = null
-        }
-    }
-
-    private fun todayFactory(uri: Uri) = viewModelFactory {
-        initializer {
-            TodayViewModel(TreeJournalStore(SafDocumentTree(contentResolver, uri)), Clock.systemDefaultZone())
         }
     }
 }

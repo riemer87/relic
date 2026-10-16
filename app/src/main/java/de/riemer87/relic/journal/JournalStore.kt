@@ -4,6 +4,7 @@ import java.io.IOException
 import java.time.Clock
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.Locale
 
@@ -25,6 +26,10 @@ interface JournalStore {
     /** Speichert den Text eines Tages. Leerer Text ohne Fotos löscht die Datei. */
     @Throws(IOException::class)
     fun save(date: LocalDate, text: String): SaveResult
+
+    /** Alle Tage, für die es eine Eintragsdatei gibt. */
+    @Throws(IOException::class)
+    fun entryDates(): Set<LocalDate>
 }
 
 /** Das heutige Datum nach Ortszeit – nie über UTC, sonst landen späte Einträge beim falschen Tag. */
@@ -90,6 +95,30 @@ class TreeJournalStore(
         return SaveResult.SAVED
     }
 
+    /**
+     * Sucht Einträge in `JJJJ/MM/JJJJ-MM-TT.md`. Fremde Dateien und Ordner werden ignoriert.
+     * Eine Zwischendatei ohne zugehörige Datei zählt mit (Absturz vor dem Umbenennen, siehe [load]).
+     */
+    override fun entryDates(): Set<LocalDate> {
+        val dates = mutableSetOf<LocalDate>()
+        for (year in tree.list("").orEmpty().filter { YEAR.matches(it) }) {
+            for (month in tree.list(year).orEmpty().filter { MONTH.matches(it) }) {
+                for (name in tree.list("$year/$month").orEmpty()) {
+                    val match = ENTRY_FILE.matchEntire(name) ?: continue
+                    val day = match.groupValues[1]
+                    if (!day.startsWith("$year-$month-")) continue
+                    val date = try {
+                        LocalDate.parse(day)
+                    } catch (e: DateTimeParseException) {
+                        continue // z. B. 2026-02-30
+                    }
+                    dates += date
+                }
+            }
+        }
+        return dates
+    }
+
     private fun writeSafely(path: String, content: String) {
         val temp = tempPath(path)
         tree.writeText(temp, content)
@@ -107,5 +136,12 @@ class TreeJournalStore(
             // Inhalt trotzdem anzeigen; beim nächsten Speichern wird die Datei ordentlich geschrieben.
         }
         return content
+    }
+
+    private companion object {
+        val YEAR = Regex("""\d{4}""")
+        val MONTH = Regex("""\d{2}""")
+        // Eintrag oder übrig gebliebene Zwischendatei
+        val ENTRY_FILE = Regex("""(\d{4}-\d{2}-\d{2})\.md(\.tmp)?""")
     }
 }

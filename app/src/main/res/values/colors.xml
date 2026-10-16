@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Gleich wie RelicColors.paper (ui/theme/Color.kt); nur für den Startbildschirm. -->
+    <color name="paper">#FFEFE9DF</color>
+</resources>

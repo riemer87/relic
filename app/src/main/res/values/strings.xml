@@ -4,6 +4,13 @@
     <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Friday · October 9" -->
     <string name="entry_date_pattern">EEEE · MMMM d</string>
     <string name="entry_title_today">Something about today</string>
+    <string name="entry_title_past">This day</string>
+    <string name="entry_empty">Nothing written down.</string>
+    <string name="action_back">Back</string>
+    <string name="action_edit">Edit</string>
+    <string name="timeline_today">Today</string>
+    <string name="timeline_yesterday">Yesterday</string>
+    <string name="timeline_missing">Nothing written down – add it now →</string>
     <string name="entry_text_placeholder">What happened today?</string>
     <string name="entry_char_count" translatable="false">%1$d / %2$d</string>
     <string name="entry_save">Save</string>

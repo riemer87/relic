@@ -2,6 +2,13 @@
     <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Freitag · 9. Oktober" -->
     <string name="entry_date_pattern">EEEE · d. MMMM</string>
     <string name="entry_title_today">Etwas zu heute</string>
+    <string name="entry_title_past">Dieser Tag</string>
+    <string name="entry_empty">Nichts aufgeschrieben.</string>
+    <string name="action_back">Zurück</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="timeline_today">Heute</string>
+    <string name="timeline_yesterday">Gestern</string>
+    <string name="timeline_missing">Nichts aufgeschrieben – nachtragen →</string>
     <string name="entry_text_placeholder">Was war heute?</string>
     <string name="entry_save">Speichern</string>
     <string name="entry_saved">Eintrag gespeichert</string>
