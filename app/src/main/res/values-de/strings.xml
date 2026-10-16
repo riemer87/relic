@@ -77,6 +77,20 @@
     <string name="cancel">Abbrechen</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Einführung beim ersten Start -->
+    <string name="intro_step">Schritt %1$d von %2$d</string>
+    <string name="intro_welcome_title">Deine Einträge gehören dir.</string>
+    <string name="intro_welcome_text">Relic speichert jeden Tag als ganz normale Datei. Die kannst du auch in 30 Jahren noch lesen – selbst wenn es diese App nicht mehr gibt.</string>
+    <string name="intro_file_example_description" tools:ignore="TypographyDashes">Beispiel: ein Ordner 2026/10 mit den Dateien 2026-10-16.md und 2026-10-16_1.jpg</string>
+    <string name="intro_welcome_start">Los geht’s</string>
+    <string name="intro_reminder_title">Soll Relic dich abends erinnern?</string>
+    <string name="intro_reminder_text">Eine kurze Erinnerung – nur an Tagen, an denen du noch nichts geschrieben hast.</string>
+    <string name="intro_reminder_yes">Ja, erinnere mich</string>
+    <string name="intro_later">Vielleicht später</string>
+    <string name="intro_lock_title">Soll Relic gesperrt sein?</string>
+    <string name="intro_lock_text">Beim Öffnen fragt Relic nach deinem Fingerabdruck oder der Displaysperre deines Handys. So liest niemand mit, der dein Handy kurz in der Hand hat.</string>
+    <string name="intro_lock_note">Die Sperre schützt die App. Deine Dateien im Ordner bleiben normale Dateien.</string>
+    <string name="intro_lock_yes">Ja, App sperren</string>
     <string name="folder_title">Wo soll dein Tagebuch liegen?</string>
     <string name="folder_text">Relic speichert jeden Eintrag als ganz normale Datei auf deinem Handy. So kannst du deine Einträge immer öffnen, auch ohne diese App.</string>
     <string name="folder_recommended">Empfohlenen Ordner verwenden</string>

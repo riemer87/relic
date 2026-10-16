@@ -81,6 +81,20 @@
     <string name="cancel">Cancel</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Einführung beim ersten Start -->
+    <string name="intro_step">Step %1$d of %2$d</string>
+    <string name="intro_welcome_title">Your entries belong to you.</string>
+    <string name="intro_welcome_text">Relic saves every day as a plain file. You can still read it in 30 years – even if this app no longer exists.</string>
+    <string name="intro_file_example_description" tools:ignore="TypographyDashes">Example: a folder 2026/10 with the files 2026-10-16.md and 2026-10-16_1.jpg</string>
+    <string name="intro_welcome_start">Let’s go</string>
+    <string name="intro_reminder_title">Should Relic remind you in the evening?</string>
+    <string name="intro_reminder_text">A short reminder – only on days when you haven’t written anything yet.</string>
+    <string name="intro_reminder_yes">Yes, remind me</string>
+    <string name="intro_later">Maybe later</string>
+    <string name="intro_lock_title">Should Relic be locked?</string>
+    <string name="intro_lock_text">When you open Relic, it asks for your fingerprint or your phone’s screen lock. That way nobody can read along who briefly holds your phone.</string>
+    <string name="intro_lock_note">The lock protects the app. The files in your folder stay plain files.</string>
+    <string name="intro_lock_yes">Yes, lock the app</string>
     <string name="folder_title">Where should your journal live?</string>
     <string name="folder_text">Relic saves every entry as a plain file on your phone. That way you can always open your entries, even without this app.</string>
     <string name="folder_recommended">Use recommended folder</string>

@@ -1,5 +1,6 @@
 package de.riemer87.relic
 
+import android.content.Context
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
@@ -8,6 +9,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.ExternalResource
+import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 
 /**
@@ -18,8 +21,21 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class MainActivityTest {
 
-    @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
+
+    /**
+     * Vor dem Start der App: Zustand wie bei einer Neuinstallation (kein Ordner, Einführung nicht gesehen,
+     * keine Sperre). Sonst hängt der Test davon ab, was vorher auf dem Handy eingerichtet war.
+     */
+    @get:Rule
+    val chain: RuleChain = RuleChain.outerRule(object : ExternalResource() {
+        override fun before() {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            listOf("journal_location", "intro", "app_lock").forEach {
+                context.getSharedPreferences(it, Context.MODE_PRIVATE).edit().clear().commit()
+            }
+        }
+    }).around(rule)
 
     private fun str(id: Int) = rule.activity.getString(id)
 
@@ -34,7 +50,11 @@ class MainActivityTest {
 
     @Test
     fun folderPickerOpensWithoutCrash() {
-        // Nach der Installation für den Test ist noch kein Ordner eingerichtet: Ordner-Bildschirm.
+        // Nach der Installation für den Test ist noch kein Ordner eingerichtet: Einführung, dann Ordner-Bildschirm.
+        rule.waitUntil(timeoutMillis = 10_000) {
+            rule.onAllNodes(hasText(str(R.string.intro_welcome_start))).fetchSemanticsNodes().isNotEmpty()
+        }
+        rule.onNode(hasText(str(R.string.intro_welcome_start))).performClick()
         rule.waitUntil(timeoutMillis = 10_000) {
             rule.onAllNodes(hasText(str(R.string.folder_existing))).fetchSemanticsNodes().isNotEmpty()
         }

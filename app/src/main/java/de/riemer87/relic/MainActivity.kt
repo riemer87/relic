@@ -16,6 +16,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,7 +25,9 @@ import de.riemer87.relic.journal.TreeJournalStore
 import de.riemer87.relic.lock.AppLockGate
 import de.riemer87.relic.lock.AppLockViewModel
 import de.riemer87.relic.lock.BiometricAuthenticator
+import de.riemer87.relic.lock.canUseAppLock
 import de.riemer87.relic.photos.PhotoProcessor
+import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.reminder.ReminderReceiver
 import de.riemer87.relic.reminder.ReminderScheduler
 import de.riemer87.relic.reminder.ReminderSettings
@@ -32,11 +35,15 @@ import de.riemer87.relic.storage.JournalLocation
 import de.riemer87.relic.storage.SafDocumentTree
 import de.riemer87.relic.ui.RelicApp
 import de.riemer87.relic.ui.folder.FolderSetupScreen
+import de.riemer87.relic.ui.intro.IntroFlow
+import de.riemer87.relic.ui.intro.IntroSettings
+import de.riemer87.relic.ui.intro.firstIntroStep
 import de.riemer87.relic.ui.theme.RelicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.Clock
+import java.time.LocalTime
 
 // FragmentActivity statt ComponentActivity: der Entsperr-Dialog von Android (androidx.biometric) braucht das.
 class MainActivity : FragmentActivity() {
@@ -44,6 +51,7 @@ class MainActivity : FragmentActivity() {
     private val appLock: AppLockViewModel by viewModels()
 
     private lateinit var location: JournalLocation
+    private lateinit var introSettings: IntroSettings
 
     /** Der eingerichtete Journal-Ordner, `null` solange keiner gewählt (oder der Zugriff verloren) ist. */
     private var journalUri by mutableStateOf<Uri?>(null)
@@ -60,6 +68,7 @@ class MainActivity : FragmentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
         )
         location = JournalLocation(applicationContext)
+        introSettings = IntroSettings(applicationContext)
         val photoProcessor = PhotoProcessor(applicationContext)
         // Übrig gebliebene Fotos aus dem Zwischenspeicher (nur beim echten Start, nicht beim Drehen).
         if (savedInstanceState == null) photoProcessor.clearPending()
@@ -90,6 +99,28 @@ class MainActivity : FragmentActivity() {
     @Composable
     private fun AppContent(photoProcessor: PhotoProcessor, authenticator: BiometricAuthenticator, lockEnabled: Boolean) {
         if (!checked) return
+        // Einführung nur beim allerersten Start; überlebt Drehen und das Beenden durch Android.
+        var introRunning by rememberSaveable { mutableStateOf(firstIntroStep(journalUri != null, introSettings.isDone()) != null) }
+        if (introRunning) {
+            IntroFlow(
+                folderStep = { progress, onReady ->
+                    FolderSetupScreen(
+                        onFolderReady = {
+                            journalUri = it
+                            introSettings.markDone()
+                            onReady()
+                        },
+                        introProgress = progress,
+                    )
+                },
+                onReminderAccepted = ::enableReminder,
+                lockAvailable = remember { canUseAppLock(this) },
+                authenticator = authenticator,
+                onLockEnabled = { appLock.setEnabled(true) },
+                onFinished = { introRunning = false },
+            )
+            return
+        }
         val uri = journalUri
         if (uri == null) {
             FolderSetupScreen(onFolderReady = { journalUri = it })
@@ -136,6 +167,13 @@ class MainActivity : FragmentActivity() {
 
     private fun handleReminderTap(intent: Intent?) {
         if (intent?.getBooleanExtra(ReminderReceiver.EXTRA_OPEN_TODAY, false) == true) openTodayRequest++
+    }
+
+    /** „Ja, erinnere mich“ in der Einführung: Erinnerung einschalten und einplanen. */
+    private fun enableReminder(time: LocalTime) {
+        val config = ReminderConfig(enabled = true, time = time)
+        ReminderSettings(applicationContext).save(config)
+        ReminderScheduler(applicationContext).apply(config)
     }
 
     /** In den Einstellungen wurde ein anderer Ordner gewählt: alte Freigabe abgeben, alles neu aufbauen. */

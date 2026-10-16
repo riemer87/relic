@@ -298,14 +298,14 @@ private fun folderText(folder: FolderLabel.Parts?): String {
 
 /** Uhrzeit in der Schreibweise des Handys, z. B. „21:00“ oder „9:00 PM“. */
 @Composable
-private fun formatTime(time: LocalTime): String {
+internal fun formatTime(time: LocalTime): String {
     val locale = currentLocale()
     return remember(time, locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(time) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TimeDialog(initial: LocalTime, onConfirm: (LocalTime) -> Unit, onDismiss: () -> Unit) {
+internal fun TimeDialog(initial: LocalTime, onConfirm: (LocalTime) -> Unit, onDismiss: () -> Unit) {
     val colors = Relic.colors
     val context = LocalContext.current
     val pickerState = rememberTimePickerState(initial.hour, initial.minute, is24Hour = DateFormat.is24HourFormat(context))

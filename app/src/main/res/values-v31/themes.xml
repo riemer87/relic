@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Android 12+: Startbildschirm in Papierfarbe mit dem App-Symbol. -->
+    <style name="Theme.Relic" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:windowSplashScreenBackground">@color/paper</item>
+    </style>
+</resources>
