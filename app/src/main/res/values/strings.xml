@@ -22,6 +22,22 @@
     <string name="timeline_today">Today</string>
     <string name="timeline_yesterday">Yesterday</string>
     <string name="timeline_missing">Nothing written down – add it now →</string>
+    <string name="archive_title">Archive</string>
+    <string name="archive_all_older">All older entries →</string>
+    <string name="archive_empty">No entries this month</string>
+    <string name="archive_add_day">Add a day</string>
+    <string name="archive_add_day_hint">Pick a day in %1$s</string>
+    <string name="archive_choose_month">Choose month</string>
+    <string name="month_previous">Previous month</string>
+    <string name="month_next">Next month</string>
+    <string name="picker_title">Add a day</string>
+    <string name="picker_prompt">Pick a day</string>
+    <string name="picker_open">Open</string>
+    <string name="picker_has_entry">has an entry</string>
+    <plurals name="archive_entries">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
     <string name="entry_text_placeholder">What happened today?</string>
     <string name="entry_char_count" translatable="false">%1$d / %2$d</string>
     <string name="entry_save">Save</string>

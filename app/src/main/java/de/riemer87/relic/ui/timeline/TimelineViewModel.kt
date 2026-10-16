@@ -6,6 +6,8 @@ import de.riemer87.relic.journal.JournalStore
 import de.riemer87.relic.journal.Timeline
 import de.riemer87.relic.journal.TimelineDay
 import de.riemer87.relic.journal.localToday
+import de.riemer87.relic.ui.DayPreview
+import de.riemer87.relic.ui.DayPreviews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,21 +22,16 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.ZonedDateTime
 
-/** Was ein Tag im Zeitstrahl zeigt: wenige Zeilen Text und die Fotos. */
-data class DayPreview(val text: String, val photos: List<String>)
-
 data class TimelineUiState(
     val today: LocalDate,
     val days: List<TimelineDay> = emptyList(),
-    /** Vorschau, nur für Tage, die schon sichtbar waren. */
-    val previews: Map<LocalDate, DayPreview> = emptyMap(),
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
 )
 
 /**
- * Zustand des Zeitstrahls. Liest zuerst nur, welche Tage Einträge haben; den Text eines Tages
- * erst, wenn er beim Scrollen sichtbar wird.
+ * Zustand des Zeitstrahls (heute und die 6 Tage davor). Liest zuerst nur, welche Tage Einträge
+ * haben; den Inhalt eines Tages erst, wenn er sichtbar wird.
  */
 class TimelineViewModel(
     private val store: JournalStore,
@@ -44,7 +41,8 @@ class TimelineViewModel(
     private val _state = MutableStateFlow(TimelineUiState(today = localToday(clock)))
     val state: StateFlow<TimelineUiState> = _state.asStateFlow()
 
-    private val requested = mutableSetOf<LocalDate>()
+    private val dayPreviews = DayPreviews(store, viewModelScope)
+    val previews: StateFlow<Map<LocalDate, DayPreview>> = dayPreviews.previews
 
     init {
         // Um Mitternacht rückt „heute“ weiter, auch wenn die App gerade offen ist.
@@ -66,32 +64,12 @@ class TimelineViewModel(
                 _state.update { it.copy(isLoading = false, loadFailed = true) }
                 return@launch
             }
-            val days = Timeline.days(today, dates)
-            _state.update { it.copy(today = today, days = days, isLoading = false, loadFailed = false) }
-
-            // Schon angezeigte Vorschauen auffrischen (Text kann sich geändert haben), andere vergessen.
-            val visibleBefore = requested.toSet()
-            requested.clear()
-            _state.update { s -> s.copy(previews = s.previews.filterKeys { it in dates }) }
-            visibleBefore.filter { it in dates }.forEach(::requestPreview)
+            _state.update { it.copy(today = today, days = Timeline.days(today, dates), isLoading = false, loadFailed = false) }
+            dayPreviews.refresh(dates)
         }
     }
 
-    /** Vom Zeitstrahl aufgerufen, sobald ein Tag mit Eintrag sichtbar wird. */
-    fun requestPreview(date: LocalDate) {
-        if (!requested.add(date)) return
-        viewModelScope.launch {
-            val preview = try {
-                withContext(Dispatchers.IO) {
-                    val entry = store.load(date)
-                    DayPreview(entry?.text?.let(Timeline::preview).orEmpty(), entry?.photos.orEmpty())
-                }
-            } catch (e: IOException) {
-                DayPreview("", emptyList())
-            }
-            _state.update { it.copy(previews = it.previews + (date to preview)) }
-        }
-    }
+    fun requestPreview(date: LocalDate) = dayPreviews.request(date)
 
     private fun untilNextMidnight(): Duration {
         val now = ZonedDateTime.now(clock)

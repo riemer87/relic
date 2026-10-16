@@ -21,11 +21,11 @@ class TimelineTest {
     // --- Welche Tage erscheinen ---
 
     @Test
-    fun `empty journal shows today and the seven days before`() {
+    fun `timeline shows today and the six days before`() {
         val days = Timeline.days(today, emptySet())
-        assertEquals(8, days.size)
+        assertEquals(7, days.size)
         assertEquals(today, days.first().date)
-        assertEquals(d("2026-10-09"), days.last().date)
+        assertEquals(d("2026-10-10"), days.last().date)
         assertTrue(days.none { it.hasEntry })
     }
 
@@ -36,11 +36,10 @@ class TimelineTest {
     }
 
     @Test
-    fun `older days appear only with an entry`() {
-        val days = Timeline.days(today, setOf(d("2026-09-01")))
-        assertEquals(9, days.size)
-        assertEquals(TimelineDay(d("2026-09-01"), hasEntry = true), days.last())
-        assertFalse(days.any { it.date == d("2026-09-02") })
+    fun `older entries are left to the archive`() {
+        val days = Timeline.days(today, setOf(d("2026-09-01"), d("2026-10-09")))
+        assertEquals(7, days.size)
+        assertFalse(days.any { it.date == d("2026-09-01") || it.date == d("2026-10-09") })
     }
 
     @Test
@@ -54,16 +53,17 @@ class TimelineTest {
     fun `future entries never appear`() {
         val days = Timeline.days(today, setOf(d("2026-10-17"), d("2027-01-01")))
         assertEquals(today, days.first().date)
-        assertEquals(8, days.size)
+        assertEquals(7, days.size)
     }
 
     @Test
-    fun `seven days back works across the turn of the year`() {
-        val days = Timeline.days(d("2026-01-03"), setOf(d("2025-12-20")))
+    fun `the week works across the turn of the year`() {
+        val days = Timeline.days(d("2026-01-03"), setOf(d("2025-12-30")))
         assertEquals(
-            listOf("2026-01-03", "2026-01-02", "2026-01-01", "2025-12-31", "2025-12-30", "2025-12-29", "2025-12-28", "2025-12-27", "2025-12-20"),
+            listOf("2026-01-03", "2026-01-02", "2026-01-01", "2025-12-31", "2025-12-30", "2025-12-29", "2025-12-28"),
             days.map { it.date.toString() },
         )
+        assertTrue(days.single { it.date == d("2025-12-30") }.hasEntry)
     }
 
     @Test

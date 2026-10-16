@@ -2,6 +2,9 @@ package de.riemer87.relic.ui
 
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -66,6 +69,26 @@ class RelicAppTest {
     }
 
     private val textField = hasSetTextAction()
+
+    /**
+     * Tippt Text ins Eingabefeld und wartet, bis er wirklich in der App angekommen ist.
+     * Die nachgebildete Tastatur liefert manchmal einen Augenblick später.
+     */
+    private fun typeText(text: String) {
+        rule.onNode(textField).performTextInput(text)
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodes(textField.and(hasText(text, substring = true))).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
+    /** Ersetzt den ganzen Text und wartet, bis das Feld genau ihn zeigt (auch leer). */
+    private fun replaceText(text: String) {
+        rule.onNode(textField).performTextReplacement(text)
+        val exactly = SemanticsMatcher.expectValue(SemanticsProperties.EditableText, AnnotatedString(text))
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodes(textField.and(exactly)).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
 
     /**
      * Tippt auf „Speichern“ und wartet, bis gespeichert ist und die Oberfläche fertig reagiert hat.
@@ -151,7 +174,7 @@ class RelicAppTest {
         start(store)
 
         openDay(str(R.string.timeline_today))
-        rule.onNode(textField).performTextInput("Ein guter Tag")
+        typeText("Ein guter Tag")
         Espresso.pressBack() // Tastatur schließen
         Espresso.pressBack() // Seite verlassen
         rule.waitForIdle()
@@ -167,7 +190,7 @@ class RelicAppTest {
         start(store)
 
         openDay(str(R.string.timeline_today))
-        rule.onNode(textField).performTextInput("Mit Knopf gespeichert")
+        typeText("Mit Knopf gespeichert")
         tapSave(store)
 
         waitForText(str(R.string.entry_saved))
@@ -201,7 +224,7 @@ class RelicAppTest {
 
         rule.onNode(hasContentDescription(str(R.string.action_edit))).performClick()
         rule.onNode(textField).assertExists()
-        rule.onNode(textField).performTextReplacement("Gestern war sehr schön")
+        replaceText("Gestern war sehr schön")
         tapSave(store)
 
         waitForText(str(R.string.entry_saved))
@@ -223,12 +246,13 @@ class RelicAppTest {
         start(store)
 
         openDay(str(R.string.timeline_today))
-        rule.onNode(textField).performTextInput("Halb geschrieben")
+        typeText("Halb geschrieben")
         rule.waitForIdle()
 
         rule.activityRule.scenario.moveToState(Lifecycle.State.CREATED) // wie Home-Taste
         rule.waitUntil(timeoutMillis = 5_000) { store.textOf(today) != null }
         assertEquals("Halb geschrieben", store.textOf(today))
+        rule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED) // App wieder in den Vordergrund, sonst wartet der Testabbau lange
     }
 
     @Test
@@ -238,7 +262,7 @@ class RelicAppTest {
 
         openDay(str(R.string.timeline_today))
         waitForText("Wird gelöscht")
-        rule.onNode(textField).performTextReplacement("")
+        replaceText("")
         tapSave(store)
 
         waitForText(str(R.string.entry_removed))
@@ -253,7 +277,7 @@ class RelicAppTest {
 
         openDay(str(R.string.timeline_today))
         rule.onNode(textField).performClick()
-        rule.onNode(textField).performTextInput("Geht nicht")
+        typeText("Geht nicht")
         rule.waitUntil(timeoutMillis = 5_000) { keyboardHeight() > 0 }
         Thread.sleep(1_000) // Tastatur-Animation abwarten.
         val keyboardTop = rule.activity.window.decorView.height - keyboardHeight()

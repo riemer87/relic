@@ -19,6 +19,22 @@
     <string name="timeline_today">Heute</string>
     <string name="timeline_yesterday">Gestern</string>
     <string name="timeline_missing">Nichts aufgeschrieben – nachtragen →</string>
+    <string name="archive_title">Archiv</string>
+    <string name="archive_all_older">Alle älteren Einträge →</string>
+    <string name="archive_empty">Keine Einträge in diesem Monat</string>
+    <string name="archive_add_day">Einen Tag nachtragen</string>
+    <string name="archive_add_day_hint">Einen Tag im %1$s auswählen</string>
+    <string name="archive_choose_month">Monat auswählen</string>
+    <string name="month_previous">Vorheriger Monat</string>
+    <string name="month_next">Nächster Monat</string>
+    <string name="picker_title">Tag nachtragen</string>
+    <string name="picker_prompt">Tag auswählen</string>
+    <string name="picker_open">Öffnen</string>
+    <string name="picker_has_entry">Eintrag vorhanden</string>
+    <plurals name="archive_entries">
+        <item quantity="one">%1$d Eintrag</item>
+        <item quantity="other">%1$d Einträge</item>
+    </plurals>
     <string name="entry_text_placeholder">Was war heute?</string>
     <string name="entry_save">Speichern</string>
     <string name="entry_saved">Eintrag gespeichert</string>

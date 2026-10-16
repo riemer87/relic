@@ -3,7 +3,7 @@ package de.riemer87.relic.journal
 import java.time.LocalDate
 
 /** Wie viele Tage vor heute immer im Zeitstrahl stehen, auch ohne Eintrag. */
-const val ALWAYS_VISIBLE_PAST_DAYS = 7L
+const val ALWAYS_VISIBLE_PAST_DAYS = 6L
 
 /** Ein Tag im Zeitstrahl. */
 data class TimelineDay(val date: LocalDate, val hasEntry: Boolean)
@@ -14,17 +14,12 @@ enum class DayLabel { TODAY, YESTERDAY, WEEKDAY }
 object Timeline {
 
     /**
-     * Die Tage des Zeitstrahls, neueste zuerst:
-     * heute und die [ALWAYS_VISIBLE_PAST_DAYS] Tage davor immer, ältere nur mit Eintrag,
-     * zukünftige nie.
+     * Die Tage des Zeitstrahls, neueste zuerst: heute und die [ALWAYS_VISIBLE_PAST_DAYS] Tage davor,
+     * mit oder ohne Eintrag. Ältere Tage stehen im Archiv.
      */
-    fun days(today: LocalDate, entryDates: Set<LocalDate>): List<TimelineDay> {
-        val recent = (0..ALWAYS_VISIBLE_PAST_DAYS).map { today.minusDays(it) }
-        return (recent + entryDates.filter { !it.isAfter(today) })
-            .distinct()
-            .sortedDescending()
+    fun days(today: LocalDate, entryDates: Set<LocalDate>): List<TimelineDay> =
+        (0..ALWAYS_VISIBLE_PAST_DAYS).map { today.minusDays(it) }
             .map { TimelineDay(it, hasEntry = it in entryDates) }
-    }
 
     fun label(date: LocalDate, today: LocalDate): DayLabel = when (date) {
         today -> DayLabel.TODAY
