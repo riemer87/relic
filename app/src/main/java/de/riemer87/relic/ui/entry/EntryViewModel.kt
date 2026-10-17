@@ -48,7 +48,7 @@ data class EntryUiState(
 )
 
 /**
- * Meldung für die Nutzerin. Mit [number] ist [text] ein Mehrzahl-Text (plurals),
+ * Meldung auf dem Bildschirm. Mit [number] ist [text] ein Mehrzahl-Text (plurals),
  * z. B. „Höchstens 4 Fotos pro Tag.“
  */
 data class EntryMessage(val text: Int, val number: Int? = null)
@@ -156,7 +156,7 @@ class EntryViewModel(
     private fun hasChanges(state: EntryUiState) =
         EntryRules.hasChanges(state.text, savedText, state.photos, savedPhotos)
 
-    /** Gibt die Meldung für die Nutzerin zurück, oder `null`, wenn das Speichern fehlschlug. */
+    /** Gibt die Meldung für den Bildschirm zurück, oder `null`, wenn das Speichern fehlschlug. */
     private suspend fun save(snapshot: EntryUiState): Int? = withContext(Dispatchers.IO + NonCancellable) {
         saveLock.withLock {
             try {

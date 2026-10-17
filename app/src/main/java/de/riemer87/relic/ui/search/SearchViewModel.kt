@@ -60,7 +60,7 @@ class SearchViewModel(
 
     init {
         viewModelScope.launch {
-            // Kurz warten, bis die Nutzerin aufhört zu tippen; gesucht wird abseits der Bedienoberfläche.
+            // Kurz warten, bis das Tippen pausiert; gesucht wird abseits der Bedienoberfläche.
             combine(query.debounce(SEARCH_DELAY_MS), entries.filterNotNull()) { q, all -> q to all }
                 .mapLatest { (q, all) -> q.trim() to withContext(Dispatchers.Default) { JournalSearch.search(all, q) } }
                 .collect { (q, hits) -> _state.update { it.copy(hits = hits, resultQuery = q) } }

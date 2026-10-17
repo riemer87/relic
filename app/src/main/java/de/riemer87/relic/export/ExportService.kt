@@ -35,7 +35,7 @@ import java.time.Instant
 
 /**
  * Exportiert das Tagebuch als Vordergrunddienst: Er läuft mit sichtbarer Benachrichtigung weiter,
- * auch wenn die Nutzerin die App verlässt, sie wegwischt oder die App-Sperre greift.
+ * auch wenn man die App verlässt, sie wegwischt oder die App-Sperre greift.
  */
 class ExportService : Service() {
 
@@ -132,7 +132,7 @@ class ExportService : Service() {
         }
         .build()
 
-    /** Ergebnis als Benachrichtigung – wichtig, falls die Nutzerin gerade nicht in der App ist. */
+    /** Ergebnis als Benachrichtigung – wichtig, falls man gerade nicht in der App ist. */
     private fun showResult(result: ExportState) {
         val text = progressText(this, result)
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)

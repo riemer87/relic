@@ -22,7 +22,7 @@ import java.io.IOException
 /** Kurzer Hinweis, bevor sich der Android-Ordnerdialog öffnet. */
 data class PickerHint(
     val initialUri: Uri?,
-    /** Dokumente/Relic konnte nicht angelegt werden: Nutzerin soll den Ordner selbst anlegen. */
+    /** Dokumente/Relic konnte nicht angelegt werden: Der Ordner muss selbst angelegt werden. */
     val mustCreateFolder: Boolean,
     /** „Ich habe schon ein Relic-Tagebuch“: Hinweis erklärt, wie man den vorhandenen Ordner findet. */
     val findExisting: Boolean = false,
@@ -103,7 +103,7 @@ class FolderSetupViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch { finish(question.uri) }
     }
 
-    /** Nutzerin will einen anderen Ordner: Freigabe für diesen wieder abgeben. */
+    /** Ein anderer Ordner ist gewünscht: Freigabe für diesen wieder abgeben. */
     fun rejectQuestion() {
         val question = _state.value.question ?: return
         location.releasePermission(question.uri)

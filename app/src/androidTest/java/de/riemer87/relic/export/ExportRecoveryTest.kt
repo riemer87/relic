@@ -84,7 +84,7 @@ class ExportRecoveryTest {
         assertNull(record.lastSuccess())
     }
 
-    /** Lässt sich die Datei nicht löschen, erfährt die Nutzerin den Namen, um sie selbst zu löschen. */
+    /** Lässt sich die Datei nicht löschen, nennt der Hinweis ihren Namen, damit man sie selbst löschen kann. */
     @Test
     fun undeletableFileIsReportedByName() {
         record.begin(target, "Relic-Export.zip")

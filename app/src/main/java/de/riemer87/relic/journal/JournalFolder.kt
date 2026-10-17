@@ -2,7 +2,7 @@ package de.riemer87.relic.journal
 
 import java.io.IOException
 
-/** Wie die Nutzerin beim Einrichten ihren Ordner auswählt. */
+/** Wie beim Einrichten der Ordner ausgewählt wird. */
 enum class FolderOption {
     /** „Empfohlenen Ordner verwenden“ (Dokumente/Relic) */
     RECOMMENDED,

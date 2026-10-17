@@ -7,7 +7,7 @@ import java.io.InputStream
  * Ein Ordner mit Unterordnern und Dateien, angesprochen über Pfade relativ zur Wurzel
  * (z. B. `2026/10/2026-10-09.md`; `""` ist die Wurzel selbst).
  *
- * Auf dem Gerät steckt dahinter der von der Nutzerin gewählte Ordner (SAF), in Tests ein
+ * Auf dem Gerät steckt dahinter der selbst gewählte Journal-Ordner (SAF), in Tests ein
  * normaler Ordner auf dem PC. So lässt sich die Speicherlogik ohne Handy prüfen.
  */
 interface DocumentTree {

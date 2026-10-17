@@ -223,7 +223,7 @@ class ExportJobTest {
         assertFalse(zipFile.exists())
     }
 
-    /** Lässt sich die halbe Datei nicht löschen, muss die Meldung das sagen (damit die Nutzerin sie selbst löscht). */
+    /** Lässt sich die halbe Datei nicht löschen, muss die Meldung das sagen (damit man sie selbst löschen kann). */
     @Test
     fun failedDeletionIsReported() {
         sampleJournal()

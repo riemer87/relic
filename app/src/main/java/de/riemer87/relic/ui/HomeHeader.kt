@@ -3,7 +3,9 @@ package de.riemer87.relic.ui
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -14,8 +16,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +43,7 @@ import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
 
 private val INDICATOR_WIDTH = 28.dp
+private val LOGO_SIZE = 34.dp
 
 /** Die zwei Hauptteile der App, als Reiter unter dem Schriftzug. */
 enum class HomeTab { WEEK, ARCHIVE }
@@ -60,6 +65,14 @@ fun HomeHeader(
             modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Rundes Logo vor dem Schriftzug; nur Schmuck, der Name steht ja daneben. Der feine Rand
+            // macht den Kreis auch auf hellem Papier sichtbar (Logo und Seite haben dieselbe Farbe).
+            Image(
+                painterResource(R.drawable.relic_logo),
+                contentDescription = null,
+                modifier = Modifier.size(LOGO_SIZE).border(1.dp, colors.rule, CircleShape),
+            )
+            Spacer(Modifier.width(10.dp))
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = colors.ink)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onSearch) {

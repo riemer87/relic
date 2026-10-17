@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException
  * updated: 2026-10-09T21:20:47+02:00
  * ---
  *
- * Text der Nutzerin
+ * Geschriebener Text
  *
  * <!-- relic:photos -->
  * ![](2026-10-09_1.jpg)

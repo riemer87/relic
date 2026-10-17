@@ -13,7 +13,7 @@ import java.io.InputStream
 import java.io.SyncFailedException
 
 /**
- * [DocumentTree] über einen Ordner, den die Nutzerin per Storage Access Framework (SAF)
+ * [DocumentTree] über einen Ordner, der per Storage Access Framework (SAF)
  * freigegeben hat. Alle Fehler von Android (z. B. entzogene Freigabe) kommen als [IOException] an.
  */
 class SafDocumentTree(

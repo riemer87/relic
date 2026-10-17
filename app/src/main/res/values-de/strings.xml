@@ -139,7 +139,7 @@
     <string name="intro_reminder_yes">Ja, erinnere mich</string>
     <string name="intro_later">Vielleicht später</string>
     <string name="intro_lock_title">Soll Relic gesperrt sein?</string>
-    <string name="intro_lock_text">Beim Öffnen fragt Relic nach deinem Fingerabdruck oder der Displaysperre deines Handys. So liest niemand mit, der dein Handy kurz in der Hand hat.</string>
+    <string name="intro_lock_text">Beim Öffnen fragt Relic nach deinem Fingerabdruck oder der Displaysperre deines Handys. So bleibt dein Tagebuch privat, auch wenn dein Handy kurz in anderen Händen ist.</string>
     <string name="intro_lock_note">Die Sperre schützt die App. Deine Dateien im Ordner bleiben normale Dateien.</string>
     <string name="intro_lock_yes">Ja, App sperren</string>
     <string name="folder_title">Wo soll dein Tagebuch liegen?</string>

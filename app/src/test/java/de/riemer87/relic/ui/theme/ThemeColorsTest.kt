@@ -77,7 +77,7 @@ class ThemeColorsTest {
         assertTrue(Appearance(ThemeMode.DARK).isDark(systemDark = false))
     }
 
-    /** Neue Nutzerinnen: wie das Handy, Tinte (Entscheidung Meilenstein 12). */
+    /** Bei der ersten Nutzung: wie das Handy, Tinte (Entscheidung Meilenstein 12). */
     @Test
     fun defaultIsLikeThePhoneWithInk() {
         assertEquals(Appearance(ThemeMode.SYSTEM, AccentColor.INK), Appearance())

@@ -145,7 +145,7 @@
     <string name="intro_reminder_yes">Yes, remind me</string>
     <string name="intro_later">Maybe later</string>
     <string name="intro_lock_title">Should Relic be locked?</string>
-    <string name="intro_lock_text">When you open Relic, it asks for your fingerprint or your phone’s screen lock. That way nobody can read along who briefly holds your phone.</string>
+    <string name="intro_lock_text">When you open Relic, it asks for your fingerprint or your phone’s screen lock. That way your journal stays private, even if your phone is briefly in someone else’s hands.</string>
     <string name="intro_lock_note">The lock protects the app. The files in your folder stay plain files.</string>
     <string name="intro_lock_yes">Yes, lock the app</string>
     <string name="folder_title">Where should your journal live?</string>

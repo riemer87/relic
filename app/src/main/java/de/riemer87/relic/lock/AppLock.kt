@@ -19,7 +19,7 @@ import java.time.Instant
 /** Fingerabdruck, Gesicht oder Displaysperre des Handys – was das Handy anbietet. */
 const val ALLOWED_AUTHENTICATORS = BIOMETRIC_WEAK or DEVICE_CREDENTIAL
 
-/** Fragt die Nutzerin, sich zu entsperren. Im Test durch eine Attrappe ersetzbar. */
+/** Fordert zum Entsperren auf. Im Test durch eine Attrappe ersetzbar. */
 fun interface Authenticator {
     fun authenticate(onResult: (success: Boolean) -> Unit)
 }

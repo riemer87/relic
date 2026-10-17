@@ -136,7 +136,9 @@ und Blätter gliedern die Seite.
 ## 4. Bausteine
 
 ### Kopfzeile
-Kein farbiger Balken. Links der Schriftzug „Relic“ (Fraunces), rechts das Regler-Symbol für die
+Kein farbiger Balken. Links das **runde Logo** (34 groß, feiner Rand 1 in Linie-Farbe, damit der
+Kreis auch auf hellem Papier sichtbar ist; bleibt immer Tinte auf Papier), mit Abstand 10 daneben
+der Schriftzug „Relic“ (Fraunces), rechts das Regler-Symbol für die
 Einstellungen, davor die Lupe für die Suche (in beiden Reitern).
 Darunter zwei **Reiter** „Diese Woche“ · „Archiv“, je über die halbe Breite (Seitenrand 16, mind.
 48 hoch), **ohne Trennstrich**: DM Sans 15, Stärke 500; der aktive in Tinte mit einem **kurzen

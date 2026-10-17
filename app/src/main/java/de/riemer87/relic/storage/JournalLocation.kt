@@ -10,7 +10,7 @@ import androidx.core.net.toUri
 import java.io.File
 
 /**
- * Merkt sich, welchen Ordner die Nutzerin für ihr Tagebuch freigegeben hat,
+ * Merkt sich, welcher Ordner für das Tagebuch freigegeben wurde,
  * und prüft, ob die App noch darauf zugreifen darf.
  */
 class JournalLocation(context: Context) {
