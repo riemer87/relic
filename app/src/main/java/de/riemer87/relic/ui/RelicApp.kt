@@ -13,6 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -40,6 +44,8 @@ import de.riemer87.relic.ui.entry.EntryScreen
 import de.riemer87.relic.ui.entry.EntryViewModel
 import de.riemer87.relic.ui.entry.PhotoPreparer
 import de.riemer87.relic.ui.folder.FolderSetupScreen
+import de.riemer87.relic.ui.search.SearchScreen
+import de.riemer87.relic.ui.search.SearchViewModel
 import de.riemer87.relic.ui.settings.SettingsScreen
 import de.riemer87.relic.ui.settings.SettingsViewModel
 import de.riemer87.relic.ui.theme.Relic
@@ -49,9 +55,9 @@ import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.LocalDate
 
-private const val TIMELINE = "timeline"
+private const val HOME = "home"
 private const val ENTRY = "entry/{date}"
-private const val ARCHIVE = "archive"
+private const val SEARCH = "search"
 private const val SETTINGS = "settings"
 private const val FOLDER = "folder"
 
@@ -76,7 +82,7 @@ fun RelicApp(
     onLockEnabledChange: (Boolean) -> Unit = {},
 ) {
     val navController = rememberNavController()
-    // Texte für die Suche im Archiv; bleiben erhalten, solange die App läuft.
+    // Texte für die Suche; bleiben erhalten, solange die App läuft.
     val textCache = remember(store) { JournalTextCache(store) }
     // Verlässt man die App, könnten Einträge woanders (z. B. am PC) geändert werden: danach frisch lesen.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { textCache.clear() }
@@ -98,7 +104,7 @@ fun RelicApp(
     // Aus der Erinnerung: zurück zum Zeitstrahl und die Eintragsseite von heute öffnen.
     LaunchedEffect(openTodayRequest) {
         if (openTodayRequest > 0) {
-            navController.popBackStack(TIMELINE, inclusive = false)
+            navController.popBackStack(HOME, inclusive = false)
             navController.navigate("entry/${localToday(clock)}")
         }
     }
@@ -112,15 +118,41 @@ fun RelicApp(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = TIMELINE,
+                startDestination = HOME,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable(TIMELINE) {
-                    TimelineScreen(
-                        viewModel = viewModel(factory = viewModelFactory { initializer { TimelineViewModel(store, clock) } }),
-                        onOpenDay = { date -> navigateFrom(TIMELINE, "entry/$date") },
-                        onOpenArchive = { navigateFrom(TIMELINE, ARCHIVE) },
-                        onOpenSettings = { navigateFrom(TIMELINE, SETTINGS) },
+                composable(HOME) {
+                    val timeline: TimelineViewModel = viewModel(factory = viewModelFactory { initializer { TimelineViewModel(store, clock) } })
+                    val archive: ArchiveViewModel = viewModel(
+                        factory = viewModelFactory { initializer { ArchiveViewModel(store, clock, createSavedStateHandle()) } },
+                    )
+                    var tab by rememberSaveable { mutableStateOf(HomeTab.WEEK) }
+                    // Archiv schon beim Start im Hintergrund vorbereiten, damit der erste Wechsel sofort fertig ist.
+                    LaunchedEffect(archive) { archive.refresh() }
+                    HomeScreen(
+                        tab = tab,
+                        onTabChange = { tab = it },
+                        onOpenSettings = { navigateFrom(HOME, SETTINGS) },
+                        onOpenSearch = { navigateFrom(HOME, SEARCH) },
+                        week = {
+                            TimelineScreen(
+                                viewModel = timeline,
+                                onOpenDay = { date -> navigateFrom(HOME, "entry/$date") },
+                                onOpenArchive = { tab = HomeTab.ARCHIVE },
+                            )
+                        },
+                        archive = {
+                            ArchiveScreen(viewModel = archive, onOpenDay = { date -> navigateFrom(HOME, "entry/$date") })
+                        },
+                    )
+                }
+                composable(SEARCH) {
+                    SearchScreen(
+                        viewModel = viewModel(
+                            factory = viewModelFactory { initializer { SearchViewModel(store, textCache, createSavedStateHandle()) } },
+                        ),
+                        onBack = { if (navController.currentDestination?.route == SEARCH) navController.popBackStack() },
+                        onOpenDay = { date -> navigateFrom(SEARCH, "entry/$date") },
                     )
                 }
                 composable(SETTINGS) {
@@ -141,15 +173,6 @@ fun RelicApp(
                         onFolderReady = onFolderChanged,
                         onBack = { if (navController.currentDestination?.route == FOLDER) navController.popBackStack() },
                         notice = stringResource(R.string.folder_change_notice),
-                    )
-                }
-                composable(ARCHIVE) {
-                    ArchiveScreen(
-                        viewModel = viewModel(
-                            factory = viewModelFactory { initializer { ArchiveViewModel(store, clock, createSavedStateHandle(), textCache) } },
-                        ),
-                        onBack = { if (navController.currentDestination?.route == ARCHIVE) navController.popBackStack() },
-                        onOpenDay = { date -> navigateFrom(ARCHIVE, "entry/$date") },
                     )
                 }
                 composable(ENTRY) { backStackEntry ->

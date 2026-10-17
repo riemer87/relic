@@ -1,6 +1,5 @@
 package de.riemer87.relic.ui.archive
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,30 +68,24 @@ import java.time.format.TextStyle
 /** Im Archiv zeigt die Vorschau mehr Text als im Zeitstrahl. */
 const val ARCHIVE_PREVIEW_LINES = 4
 
+/** Inhalt des Archiv-Reiters (Kopfzeile und Reiter kommen von der Startseite). */
 @Composable
 fun ArchiveScreen(
     viewModel: ArchiveViewModel,
-    onBack: () -> Unit,
     onOpenDay: (LocalDate) -> Unit,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val previews by viewModel.previews.collectAsStateWithLifecycle()
-    val search by viewModel.search.collectAsStateWithLifecycle()
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     ArchiveContent(
         state = state,
         previews = previews,
-        onBack = onBack,
         onOpenDay = onOpenDay,
         onShowMonth = viewModel::showMonth,
         onPrevious = viewModel::previousMonth,
         onNext = viewModel::nextMonth,
         onDayVisible = viewModel::requestPreview,
-        search = search,
-        onOpenSearch = viewModel::openSearch,
-        onCloseSearch = viewModel::closeSearch,
-        onQueryChange = viewModel::setQuery,
     )
 }
 
@@ -100,16 +93,11 @@ fun ArchiveScreen(
 internal fun ArchiveContent(
     state: ArchiveUiState,
     previews: Map<LocalDate, DayPreview>,
-    onBack: () -> Unit,
     onOpenDay: (LocalDate) -> Unit,
     onShowMonth: (YearMonth) -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onDayVisible: (LocalDate) -> Unit,
-    search: SearchUiState = SearchUiState(),
-    onOpenSearch: () -> Unit = {},
-    onCloseSearch: () -> Unit = {},
-    onQueryChange: (String) -> Unit = {},
 ) {
     val colors = Relic.colors
     val locale = currentLocale()
@@ -117,133 +105,92 @@ internal fun ArchiveContent(
     var dayPickerOpen by rememberSaveable { mutableStateOf(false) }
     // Je Monat eine eigene Scroll-Position; sie bleibt erhalten, wenn man einen Eintrag öffnet und zurückkommt.
     val listState = rememberSaveable(state.month, saver = LazyListState.Saver) { LazyListState() }
-    val searchListState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
-    // Tastatur nur öffnen, wenn die Lupe gerade angetippt wurde (nicht beim Zurückkommen aus einem Eintrag).
-    var focusSearch by rememberSaveable { mutableStateOf(false) }
-    if (search.open) BackHandler(onBack = onCloseSearch)
     val entries = state.entries
 
     Column(modifier = Modifier.fillMaxSize().background(colors.paper)) {
+        // Kopfzeile: „September 2026 ▾“ mit ‹ ›
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+            modifier = Modifier
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(colors.sheet)
+                .padding(start = 14.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Bei offener Suche schließt der Pfeil erst die Suche – wie die Zurück-Geste.
-            IconButton(onClick = if (search.open) onCloseSearch else onBack) {
-                Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back), tint = colors.ink)
-            }
-            Spacer(Modifier.weight(1f))
-            if (!search.open) {
-                IconButton(
-                    onClick = {
-                        focusSearch = true
-                        onOpenSearch()
-                    },
-                ) {
-                    Icon(painterResource(R.drawable.ic_search), stringResource(R.string.action_search), tint = colors.ink)
-                }
-            }
-        }
-        Text(
-            text = stringResource(if (search.open) R.string.search_title else R.string.archive_title),
-            style = MaterialTheme.typography.headlineMedium,
-            color = colors.ink,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-
-        if (search.open) {
-            SearchField(
-                query = search.query,
-                onQueryChange = onQueryChange,
-                focusNow = focusSearch,
-                onFocused = { focusSearch = false },
-            )
-            SearchResults(search = search, listState = searchListState, onOpenDay = onOpenDay)
-        } else {
-            // Kopfzeile: „September 2026 ▾“ mit ‹ ›
             Row(
                 modifier = Modifier
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(colors.sheet)
-                    .padding(start = 14.dp, end = 4.dp),
+                    .weight(1f)
+                    .clickable(role = Role.DropdownList, onClickLabel = stringResource(R.string.archive_choose_month)) { pickerOpen = !pickerOpen }
+                    .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(role = Role.DropdownList, onClickLabel = stringResource(R.string.archive_choose_month)) { pickerOpen = !pickerOpen }
-                        .padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(DateText.monthYear(state.month.atDay(1), locale), style = MaterialTheme.typography.headlineSmall, color = colors.ink)
-                    Text(if (pickerOpen) "▴" else "▾", style = MaterialTheme.typography.labelMedium, color = colors.inkFaint)
-                }
-                IconButton(onClick = onPrevious, enabled = state.canGoBack) {
-                    Icon(
-                        painterResource(R.drawable.ic_chevron_left),
-                        stringResource(R.string.month_previous),
-                        tint = if (state.canGoBack) colors.inkSoft else colors.rule,
-                    )
-                }
-                IconButton(onClick = onNext, enabled = state.canGoForward) {
-                    Icon(
-                        painterResource(R.drawable.ic_chevron_right),
-                        stringResource(R.string.month_next),
-                        tint = if (state.canGoForward) colors.inkSoft else colors.rule,
-                    )
-                }
+                Text(DateText.monthYear(state.month.atDay(1), locale), style = MaterialTheme.typography.headlineSmall, color = colors.ink)
+                Text(if (pickerOpen) "▴" else "▾", style = MaterialTheme.typography.labelMedium, color = colors.inkFaint)
             }
-
-            AnimatedVisibility(visible = pickerOpen) {
-                MonthPicker(
-                    selected = state.month,
-                    today = state.today,
-                    entryDates = state.entryDates,
-                    onSelect = {
-                        onShowMonth(it)
-                        pickerOpen = false
-                    },
+            IconButton(onClick = onPrevious, enabled = state.canGoBack) {
+                Icon(
+                    painterResource(R.drawable.ic_chevron_left),
+                    stringResource(R.string.month_previous),
+                    tint = if (state.canGoBack) colors.inkSoft else colors.rule,
                 )
             }
+            IconButton(onClick = onNext, enabled = state.canGoForward) {
+                Icon(
+                    painterResource(R.drawable.ic_chevron_right),
+                    stringResource(R.string.month_next),
+                    tint = if (state.canGoForward) colors.inkSoft else colors.rule,
+                )
+            }
+        }
 
-            LazyColumn(
-                state = listState,
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                item(key = "count") {
-                    Text(
-                        text = if (state.isLoading) "" else if (entries.isEmpty()) {
-                            stringResource(R.string.archive_empty)
-                        } else {
-                            pluralStringResource(R.plurals.archive_entries, entries.size, entries.size)
-                        },
-                        style = KickerStyle,
-                        color = colors.inkFaint,
-                        modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
-                    )
+        AnimatedVisibility(visible = pickerOpen) {
+            MonthPicker(
+                selected = state.month,
+                today = state.today,
+                entryDates = state.entryDates,
+                onSelect = {
+                    onShowMonth(it)
+                    pickerOpen = false
+                },
+            )
+        }
+
+        LazyColumn(
+            state = listState,
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            item(key = "count") {
+                Text(
+                    text = if (state.isLoading) "" else if (entries.isEmpty()) {
+                        stringResource(R.string.archive_empty)
+                    } else {
+                        pluralStringResource(R.plurals.archive_entries, entries.size, entries.size)
+                    },
+                    style = KickerStyle,
+                    color = colors.inkFaint,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 2.dp),
+                )
+            }
+            items(entries, key = { it.toEpochDay() }) { date ->
+                LaunchedEffect(date) { onDayVisible(date) }
+                DaySheet(
+                    date = date,
+                    filled = true,
+                    numberColor = colors.ink,
+                    kicker = null,
+                    kickerColor = colors.inkFaint,
+                    onClick = { onOpenDay(date) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    DayPreviewContent(date, previews[date], maxLines = ARCHIVE_PREVIEW_LINES, photoSize = 56.dp)
                 }
-                items(entries, key = { it.toEpochDay() }) { date ->
-                    LaunchedEffect(date) { onDayVisible(date) }
-                    DaySheet(
-                        date = date,
-                        filled = true,
-                        numberColor = colors.ink,
-                        kicker = null,
-                        kickerColor = colors.inkFaint,
-                        onClick = { onOpenDay(date) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        DayPreviewContent(date, previews[date], maxLines = ARCHIVE_PREVIEW_LINES, photoSize = 56.dp)
-                    }
-                }
-                item(key = "add") {
-                    AddDaySheet(month = state.month, onClick = { dayPickerOpen = true })
-                }
+            }
+            item(key = "add") {
+                AddDaySheet(month = state.month, onClick = { dayPickerOpen = true })
             }
         }
     }
@@ -398,7 +345,7 @@ private fun ArchivePreview() {
         ArchiveContent(
             state = ArchiveUiState(today = today, month = YearMonth.of(2026, 9), entryDates = dates, isLoading = false),
             previews = mapOf(LocalDate.of(2026, 9, 29) to DayPreview("Heute ging es mir schon besser.", emptyList())),
-            onBack = {}, onOpenDay = {}, onShowMonth = {}, onPrevious = {}, onNext = {}, onDayVisible = {},
+            onOpenDay = {}, onShowMonth = {}, onPrevious = {}, onNext = {}, onDayVisible = {},
         )
     }
 }

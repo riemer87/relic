@@ -5,6 +5,9 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
@@ -194,6 +197,83 @@ class ArchiveFlowTest {
         assertEquals("Nachgetragen", store.textOf(LocalDate.of(2026, 9, 5)))
         waitForText("Nachgetragen") // zurück im Archiv, September, mit dem neuen Eintrag
         rule.onNode(hasText(monthYear(2026, 9))).assertExists()
+    }
+
+    // --- Reiter „Diese Woche“ · „Archiv“ ---
+
+    private fun tab(id: Int) = hasText(str(id)) and SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Tab)
+
+    @Test
+    fun tabsSwitchBetweenWeekAndArchive() {
+        start(store())
+        waitForText("Heute geschrieben")
+        rule.onNode(tab(R.string.tab_week)).assertIsSelected()
+        rule.onNode(tab(R.string.archive_title)).assertIsNotSelected()
+        rule.onNode(hasContentDescription(str(R.string.action_search))).assertExists() // Suche in beiden Reitern
+
+        rule.onNode(tab(R.string.archive_title)).performClick()
+        waitForText(monthYear(2026, 10))
+        rule.onNode(tab(R.string.archive_title)).assertIsSelected()
+        rule.onNode(hasContentDescription(str(R.string.action_search))).assertExists()
+
+        rule.onNode(tab(R.string.tab_week)).performClick()
+        waitForText("Heute geschrieben")
+        rule.onNode(tab(R.string.tab_week)).assertIsSelected()
+    }
+
+    /** Wunsch: Suche auch aus „Diese Woche“; zurück landet man wieder dort. */
+    @Test
+    fun searchFromTheWeekReturnsToTheWeek() {
+        start(searchStore())
+        waitForText("Heute geschrieben")
+        search("fluss")
+        waitForText("Am Fluss spaziert")
+
+        tap(str(R.string.action_back))
+
+        waitForText("Heute geschrieben")
+        rule.onNode(tab(R.string.tab_week)).assertIsSelected()
+    }
+
+    /** Der gewählte Monat im Archiv bleibt beim Hin- und Herwechseln der Reiter erhalten. */
+    @Test
+    fun archiveKeepsItsMonthWhenSwitchingTabs() {
+        start(store())
+        openArchive()
+        tap(str(R.string.month_previous))
+        waitForText("Spätsommer im September")
+
+        rule.onNode(tab(R.string.tab_week)).performClick()
+        waitForText("Heute geschrieben")
+        rule.onNode(tab(R.string.archive_title)).performClick()
+
+        waitForText(monthYear(2026, 9))
+        waitForText("Spätsommer im September")
+    }
+
+    @Test
+    fun backGestureInArchiveReturnsToTheWeek() {
+        start(store())
+        openArchive()
+
+        Espresso.pressBack()
+        rule.waitForIdle()
+
+        waitForText("Heute geschrieben")
+        rule.onNode(tab(R.string.tab_week)).assertIsSelected()
+    }
+
+    @Test
+    fun settingsOpenFromTheArchiveToo() {
+        start(store())
+        openArchive()
+
+        tap(str(R.string.action_settings))
+        waitForText(str(R.string.settings_title))
+        tap(str(R.string.action_back))
+
+        waitForText(monthYear(2026, 10))
+        rule.onNode(tab(R.string.archive_title)).assertIsSelected()
     }
 
     // --- Suche (Meilenstein 13) ---

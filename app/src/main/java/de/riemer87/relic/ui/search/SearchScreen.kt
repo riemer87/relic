@@ -1,8 +1,9 @@
-package de.riemer87.relic.ui.archive
+package de.riemer87.relic.ui.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,7 +49,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
+import de.riemer87.relic.ui.archive.ARCHIVE_PREVIEW_LINES
 import de.riemer87.relic.journal.SearchHit
 import de.riemer87.relic.ui.DateText
 import de.riemer87.relic.ui.DayPreviewContent
@@ -55,12 +64,46 @@ import de.riemer87.relic.ui.theme.Relic
 import java.time.LocalDate
 
 /**
+ * Suche als eigene Seite: Pfeil zurück (oder Zurück-Geste) führt dorthin, wo man herkam.
+ * Die Tastatur öffnet sich nur beim ersten Öffnen, nicht beim Zurückkommen aus einem Treffer.
+ */
+@Composable
+fun SearchScreen(viewModel: SearchViewModel, onBack: () -> Unit, onOpenDay: (LocalDate) -> Unit) {
+    val colors = Relic.colors
+    val search by viewModel.state.collectAsStateWithLifecycle()
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
+    var focusNow by rememberSaveable { mutableStateOf(true) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    Column(modifier = Modifier.fillMaxSize().background(colors.paper)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp)) {
+            IconButton(onClick = onBack) {
+                Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back), tint = colors.ink)
+            }
+        }
+        Text(
+            text = stringResource(R.string.search_title),
+            style = MaterialTheme.typography.headlineMedium,
+            color = colors.ink,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+        SearchField(
+            query = search.query,
+            onQueryChange = viewModel::setQuery,
+            focusNow = focusNow,
+            onFocused = { focusNow = false },
+        )
+        SearchResults(search = search, listState = listState, onOpenDay = onOpenDay)
+    }
+}
+
+/**
  * Suchfeld auf einem Blatt, mit Lupe links und ✕ rechts. Das ✕ leert nur das Feld; geschlossen wird
  * die Suche mit dem Pfeil oben links oder der Zurück-Geste.
  * @param focusNow Tastatur sofort öffnen (nur beim Antippen der Lupe, nicht beim Zurückkommen)
  */
 @Composable
-internal fun SearchField(query: String, onQueryChange: (String) -> Unit, focusNow: Boolean, onFocused: () -> Unit) {
+private fun SearchField(query: String, onQueryChange: (String) -> Unit, focusNow: Boolean, onFocused: () -> Unit) {
     val colors = Relic.colors
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -115,7 +158,7 @@ internal fun SearchField(query: String, onQueryChange: (String) -> Unit, focusNo
 
 /** Trefferliste: „x Einträge“ und die Einträge als Blätter, neueste zuerst. */
 @Composable
-internal fun SearchResults(search: SearchUiState, listState: LazyListState, onOpenDay: (LocalDate) -> Unit) {
+private fun SearchResults(search: SearchUiState, listState: LazyListState, onOpenDay: (LocalDate) -> Unit) {
     val colors = Relic.colors
     val locale = currentLocale()
     LazyColumn(
@@ -126,7 +169,7 @@ internal fun SearchResults(search: SearchUiState, listState: LazyListState, onOp
     ) {
         item(key = "status") {
             val status = when {
-                search.loading -> stringResource(R.string.search_loading)
+                search.loading && search.query.isNotBlank() -> stringResource(R.string.search_loading)
                 search.showNoResults -> stringResource(R.string.search_no_results, search.resultQuery)
                 search.resultQuery.isEmpty() || search.query.isBlank() -> ""
                 else -> pluralStringResource(R.plurals.archive_entries, search.hits.size, search.hits.size)

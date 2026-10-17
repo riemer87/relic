@@ -80,6 +80,7 @@
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
     <!-- Suche im Archiv -->
     <string name="action_search">Suchen</string>
+    <string name="tab_week">Diese Woche</string>
     <string name="search_placeholder">Einträge durchsuchen</string>
     <string name="search_title">Suche</string>
     <string name="search_clear">Suchbegriff löschen</string>

@@ -20,8 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +33,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,7 +64,6 @@ fun TimelineScreen(
     viewModel: TimelineViewModel,
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
-    onOpenSettings: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val previews by viewModel.previews.collectAsStateWithLifecycle()
@@ -79,7 +75,6 @@ fun TimelineScreen(
         previews = previews,
         onOpenDay = onOpenDay,
         onOpenArchive = onOpenArchive,
-        onOpenSettings = onOpenSettings,
         onDayVisible = viewModel::requestPreview,
     )
 }
@@ -91,23 +86,10 @@ internal fun TimelineContent(
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
     onDayVisible: (LocalDate) -> Unit,
-    onOpenSettings: () -> Unit = {},
 ) {
     val colors = Relic.colors
 
     Column(modifier = Modifier.fillMaxSize().background(colors.paper)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 14.dp, top = 12.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = colors.ink)
-            Spacer(Modifier.weight(1f))
-            ArchiveButton(onClick = onOpenArchive)
-            IconButton(onClick = onOpenSettings) {
-                Icon(painterResource(R.drawable.ic_settings), stringResource(R.string.action_settings), tint = colors.ink)
-            }
-        }
-
         LazyColumn(
             contentPadding = PaddingValues(start = 14.dp, end = 18.dp, top = 12.dp, bottom = 24.dp),
             modifier = Modifier.fillMaxSize(),
@@ -128,30 +110,6 @@ internal fun TimelineContent(
                 item(key = "archive") { ArchiveLink(onClick = onOpenArchive) }
             }
         }
-    }
-}
-
-/** Knopf oben rechts: „▤ Archiv“. */
-@Composable
-private fun ArchiveButton(onClick: () -> Unit) {
-    val colors = Relic.colors
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .drawBehind {
-                drawRoundRect(
-                    color = colors.rule,
-                    cornerRadius = CornerRadius(size.height / 2),
-                    style = Stroke(1.5.dp.toPx()),
-                )
-            }
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        Icon(painterResource(R.drawable.ic_archive), null, tint = colors.ink, modifier = Modifier.size(18.dp))
-        Text(stringResource(R.string.archive_title), style = MaterialTheme.typography.labelLarge, color = colors.ink)
     }
 }
 

@@ -122,7 +122,6 @@ und Blätter gliedern die Seite.
 | Knöpfe (Speichern, Umrandet), Auswahlfelder, Fotos | **8** (kleine Vorschaufotos 6) |
 | Große Knöpfe der Einführung | 10 |
 | Tagesauswahl-Dialog | 20 |
-| Archiv-Knopf oben | ganz rund (Pille) |
 | Punkte, Farbtupfer, Plus-Kreis | Kreis |
 
 ### Linien
@@ -137,9 +136,20 @@ und Blätter gliedern die Seite.
 ## 4. Bausteine
 
 ### Kopfzeile
-Kein farbiger Balken. Links der Schriftzug „Relic“ (Fraunces), rechts ein Pillen-Knopf
-„Archiv“ mit Symbol (Rand in Linie-Farbe) und das Zahnrad für die Einstellungen.
-Unterseiten: Pfeil zurück oben links, darunter der Seitentitel. **Keine untere Navigationsleiste.**
+Kein farbiger Balken. Links der Schriftzug „Relic“ (Fraunces), rechts das Regler-Symbol für die
+Einstellungen, davor die Lupe für die Suche (in beiden Reitern).
+Darunter zwei **Reiter** „Diese Woche“ · „Archiv“, je über die halbe Breite (Seitenrand 16, mind.
+48 hoch), **ohne Trennstrich**: DM Sans 15, Stärke 500; der aktive in Tinte mit einem **kurzen
+Strich** darunter (28 × 2, Tinte, mittig, 4 über der Unterkante), der andere in Tinte blass.
+Beim Wechsel bleiben Kopfzeile und Reiter stehen; nur der Inhalt blendet in **150 ms** über, der
+Strich gleitet in derselben Zeit zum anderen Reiter, die Schriftfarben wechseln mit. Keine graue
+Drück-Fläche auf den Reitern. Bewegt wird nur Durchsichtigkeit und Position (schont ältere Handys).
+Unterseiten (Eintrag, Einstellungen, Suche): Pfeil zurück oben links, darunter der Seitentitel.
+**Keine untere Navigationsleiste.**
+
+### Symbole
+Feine Linien in **1,5er-Stärke** mit runden Enden (wie die Zeitstrahl-Linie), 24er Raster, in Tinte.
+Einstellungen = **Regler** (drei Linien mit Kreisen), Suche = Lupe. Keine gefüllten, schweren Symbole.
 
 ### Zeitstrahl
 Links eine senkrechte Linie (Linie-Farbe) mit einem **Punkt pro Tag** (12 groß):
@@ -177,9 +187,9 @@ Kopfzeile „September 2026 ▾“ mit Pfeilen ‹ › auf einem Blatt; aufgekla
 Raster (Monate mit Einträgen hervorgehoben, Zukunft ausgegraut). Darunter „x Einträge“ und die
 Tagesblätter. Am Ende ein gestricheltes Blatt „+ Einen Tag nachtragen“.
 
-### Suche im Archiv
-Lupe oben rechts in der Kopfzeile. In der Suche lautet der Seitentitel „Suche“. Suchfeld als Blatt
-(Radius 10) an Stelle der Monatszeile: Lupe links (Tinte weich), Platzhalter „Einträge durchsuchen“
+### Suche
+Lupe oben rechts in der Kopfzeile (beide Reiter). Eigene Seite: Pfeil zurück, Seitentitel „Suche“,
+darunter das Suchfeld als Blatt (Radius 10): Lupe links (Tinte weich), Platzhalter „Einträge durchsuchen“
 in Tinte blass, ✕ rechts (Tinte weich, nur sichtbar, wenn etwas im Feld steht; leert das Feld).
 Treffer als Archiv-Blätter mit Kicker „MONAT JAHR“; die Fundstellen im Vorschautext
 **halbfett (600)**, sonst gleiche Farbe wie der Text. Kürzt die Vorschau vorn, beginnt sie mit „…“.
