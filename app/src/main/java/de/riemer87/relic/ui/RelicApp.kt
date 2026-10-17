@@ -17,6 +17,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import de.riemer87.relic.R
 import de.riemer87.relic.journal.JournalStore
+import de.riemer87.relic.journal.JournalTextCache
 import de.riemer87.relic.journal.localToday
 import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.photos.LocalPhotoLoader
@@ -73,6 +76,10 @@ fun RelicApp(
     onLockEnabledChange: (Boolean) -> Unit = {},
 ) {
     val navController = rememberNavController()
+    // Texte für die Suche im Archiv; bleiben erhalten, solange die App läuft.
+    val textCache = remember(store) { JournalTextCache(store) }
+    // Verlässt man die App, könnten Einträge woanders (z. B. am PC) geändert werden: danach frisch lesen.
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { textCache.clear() }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
@@ -139,7 +146,7 @@ fun RelicApp(
                 composable(ARCHIVE) {
                     ArchiveScreen(
                         viewModel = viewModel(
-                            factory = viewModelFactory { initializer { ArchiveViewModel(store, clock, createSavedStateHandle()) } },
+                            factory = viewModelFactory { initializer { ArchiveViewModel(store, clock, createSavedStateHandle(), textCache) } },
                         ),
                         onBack = { if (navController.currentDestination?.route == ARCHIVE) navController.popBackStack() },
                         onOpenDay = { date -> navigateFrom(ARCHIVE, "entry/$date") },
@@ -159,6 +166,7 @@ fun RelicApp(
                         ),
                         onClose = { message ->
                             photoLoader.forget(date) // Fotos können neue Dateinamen bekommen haben.
+                            textCache.forget(date) // Für die Suche: Text neu lesen.
                             // Zurück dorthin, wo man herkam (Zeitstrahl oder Archiv).
                             if (navController.currentDestination?.route == ENTRY) navController.popBackStack()
                             message?.let { showMessage(resources.getString(it)) }

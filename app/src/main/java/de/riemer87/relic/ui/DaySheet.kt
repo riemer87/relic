@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -94,9 +95,13 @@ fun DaySheet(
 
 /** Text (gekürzt) und Fotos eines Tages, wie in Zeitstrahl und Archiv. */
 @Composable
-fun DayPreviewContent(date: LocalDate, preview: DayPreview?, maxLines: Int, photoSize: Dp) {
+fun DayPreviewContent(date: LocalDate, preview: DayPreview?, maxLines: Int, photoSize: Dp) =
+    DayPreviewContent(date, AnnotatedString(preview?.text.orEmpty()), preview?.photos.orEmpty(), maxLines, photoSize)
+
+/** Wie oben, mit Text, in dem z. B. Suchtreffer hervorgehoben sind. */
+@Composable
+fun DayPreviewContent(date: LocalDate, text: AnnotatedString, photos: List<String>, maxLines: Int, photoSize: Dp) {
     val colors = Relic.colors
-    val text = preview?.text.orEmpty()
     if (text.isNotEmpty()) {
         Text(
             text = text,
@@ -106,7 +111,6 @@ fun DayPreviewContent(date: LocalDate, preview: DayPreview?, maxLines: Int, phot
             overflow = TextOverflow.Ellipsis,
         )
     }
-    val photos = preview?.photos.orEmpty()
     if (photos.isNotEmpty()) {
         val thumbPx = with(LocalDensity.current) { photoSize.roundToPx() } * 2
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {

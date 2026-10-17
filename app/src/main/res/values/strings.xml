@@ -84,6 +84,13 @@
     <string name="cancel">Cancel</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Suche im Archiv -->
+    <string name="action_search">Search</string>
+    <string name="search_placeholder">Search entries</string>
+    <string name="search_title">Search</string>
+    <string name="search_clear">Clear search</string>
+    <string name="search_loading">Searching entries …</string>
+    <string name="search_no_results">No entries containing “%1$s”.</string>
     <!-- Darstellung -->
     <string name="settings_appearance">Appearance</string>
     <string name="appearance_light">Light</string>

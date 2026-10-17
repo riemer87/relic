@@ -13,10 +13,13 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
+import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.riemer87.relic.R
 import de.riemer87.relic.ui.theme.RelicTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -191,5 +194,165 @@ class ArchiveFlowTest {
         assertEquals("Nachgetragen", store.textOf(LocalDate.of(2026, 9, 5)))
         waitForText("Nachgetragen") // zurück im Archiv, September, mit dem neuen Eintrag
         rule.onNode(hasText(monthYear(2026, 9))).assertExists()
+    }
+
+    // --- Suche (Meilenstein 13) ---
+
+    private fun searchStore() = FakeJournalStore(
+        mapOf(
+            today to "Heute geschrieben",
+            LocalDate.of(2026, 10, 3) to "Am Fluss spaziert",
+            LocalDate.of(2026, 9, 20) to "Wieder am FLUSS gesessen",
+            LocalDate.of(2025, 12, 24) to "Heiligabend",
+        ),
+    )
+
+    private val searchField get() = hasContentDescription(str(R.string.search_placeholder))
+
+    private fun search(text: String) {
+        tap(str(R.string.action_search))
+        rule.onNode(searchField).performTextInput(text)
+        rule.waitForIdle()
+    }
+
+    private fun kicker(year: Int, month: Int) = monthYear(year, month).uppercase(rule.activity.resources.configuration.locales[0])
+
+    @Test
+    fun searchFindsEntriesIgnoringCaseNewestFirst() {
+        start(searchStore())
+        openArchive()
+        search("fluss")
+
+        waitForText("Wieder am FLUSS gesessen")
+        waitForText("Am Fluss spaziert")
+        rule.onNode(hasText(rule.activity.resources.getQuantityString(R.plurals.archive_entries, 2, 2))).assertExists()
+        rule.onNode(hasText("Heiligabend")).assertDoesNotExist()
+        rule.onNode(hasText("Heute geschrieben")).assertDoesNotExist()
+        // Monat und Jahr stehen auf jedem Treffer, der neueste oben.
+        val october = rule.onNode(hasText(kicker(2026, 10))).fetchSemanticsNode().positionInRoot.y
+        val september = rule.onNode(hasText(kicker(2026, 9))).fetchSemanticsNode().positionInRoot.y
+        assertTrue(october < september)
+    }
+
+    @Test
+    fun searchReachesOlderYears() {
+        start(searchStore())
+        openArchive()
+        search("HEILIG")
+
+        waitForText("Heiligabend")
+        rule.onNode(hasText(kicker(2025, 12))).assertExists()
+    }
+
+    @Test
+    fun noResultsSaysSo() {
+        start(searchStore())
+        openArchive()
+        search("Berge")
+
+        waitForText(rule.activity.getString(R.string.search_no_results, "Berge"))
+    }
+
+    /** Aus einem Treffer zurück: Suchbegriff und Treffer sind noch da. */
+    @Test
+    fun goingBackFromAHitKeepsTheResults() {
+        start(searchStore())
+        openArchive()
+        search("fluss")
+        waitForText("Am Fluss spaziert")
+
+        rule.onNode(hasText("Am Fluss spaziert") and hasSetTextAction().not()).performClick()
+        waitForText(str(R.string.entry_title_past))
+        tap(str(R.string.action_back))
+
+        waitForText("Wieder am FLUSS gesessen")
+        rule.onNode(searchField).assertExists()
+        rule.onNode(hasText("fluss") and hasSetTextAction()).assertExists()
+    }
+
+    /** Pfeil oben links schließt die Suche: wieder „Archiv“ mit dem Monat, Suchbegriff weg. */
+    @Test
+    fun backArrowClosesSearchAndReturnsToTheMonth() {
+        start(searchStore())
+        openArchive()
+        search("fluss")
+        waitForText("Wieder am FLUSS gesessen")
+        rule.onNode(hasText(str(R.string.search_title))).assertExists()
+
+        tap(str(R.string.action_back))
+
+        rule.onNode(hasText(str(R.string.archive_title))).assertExists()
+        rule.onNode(hasText(str(R.string.search_title))).assertDoesNotExist()
+
+        waitForText(monthYear(2026, 10))
+        rule.onNode(searchField).assertDoesNotExist()
+        rule.onNode(hasText("Wieder am FLUSS gesessen")).assertDoesNotExist()
+        tap(str(R.string.action_search))
+        rule.onNode(hasText("fluss") and hasSetTextAction()).assertDoesNotExist()
+    }
+
+    /** Die Zurück-Geste schließt die Suche ebenfalls (und verlässt nicht gleich das Archiv). */
+    @Test
+    fun backGestureClosesSearch() {
+        start(searchStore())
+        openArchive()
+        search("fluss")
+        waitForText("Wieder am FLUSS gesessen")
+
+        Espresso.closeSoftKeyboard()
+        Espresso.pressBack()
+        rule.waitForIdle()
+
+        waitForText(monthYear(2026, 10))
+        rule.onNode(searchField).assertDoesNotExist()
+        rule.onNode(hasText(str(R.string.archive_title))).assertExists()
+    }
+
+    /** Wunsch Meilenstein 13: Das ✕ leert nur das Suchfeld – man bleibt in der Suche. */
+    @Test
+    fun clearButtonOnlyEmptiesTheField() {
+        start(searchStore())
+        openArchive()
+        search("fluss")
+        waitForText("Wieder am FLUSS gesessen")
+
+        tap(str(R.string.search_clear))
+
+        rule.onNode(searchField).assertExists()
+        rule.onNode(hasText(str(R.string.search_title))).assertExists()
+        rule.onNode(hasText("fluss") and hasSetTextAction()).assertDoesNotExist()
+        rule.onNode(hasText("Wieder am FLUSS gesessen")).assertDoesNotExist()
+        rule.onNode(hasContentDescription(str(R.string.search_clear))).assertDoesNotExist()
+
+        rule.onNode(searchField).performTextInput("heilig")
+        waitForText("Heiligabend")
+    }
+
+    /** Ein Treffer wird geöffnet und geändert: Zurück in der Suche gilt schon der neue Text. */
+    @Test
+    fun editedEntryIsFoundWithItsNewText() {
+        val store = searchStore()
+        start(store)
+        openArchive()
+        search("fluss")
+        waitForText("Am Fluss spaziert")
+
+        rule.onNode(hasText("Am Fluss spaziert") and hasSetTextAction().not()).performClick()
+        waitForText(str(R.string.entry_title_past))
+        tap(str(R.string.action_edit))
+        val textField = hasSetTextAction() and hasContentDescription(str(R.string.search_placeholder)).not()
+        rule.onNode(textField).performTextReplacement("Jetzt am See")
+        rule.waitUntil(timeoutMillis = 5_000) {
+            rule.onAllNodes(textField and hasText("Jetzt am See")).fetchSemanticsNodes().isNotEmpty()
+        }
+        rule.onNode(hasText(str(R.string.entry_save))).performSemanticsAction(SemanticsActions.OnClick)
+        rule.waitUntil(timeoutMillis = 5_000) { store.textOf(LocalDate.of(2026, 10, 3)) == "Jetzt am See" }
+        rule.waitForIdle()
+
+        // Zurück in der Suche „fluss“: der geänderte Eintrag passt nicht mehr.
+        waitForText("Wieder am FLUSS gesessen")
+        rule.waitUntil(timeoutMillis = 5_000) { rule.onAllNodes(hasText("Am Fluss spaziert")).fetchSemanticsNodes().isEmpty() }
+        rule.onNode(searchField).performTextReplacement("see")
+        waitForText("Jetzt am See")
     }
 }

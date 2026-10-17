@@ -177,6 +177,13 @@ Kopfzeile „September 2026 ▾“ mit Pfeilen ‹ › auf einem Blatt; aufgekla
 Raster (Monate mit Einträgen hervorgehoben, Zukunft ausgegraut). Darunter „x Einträge“ und die
 Tagesblätter. Am Ende ein gestricheltes Blatt „+ Einen Tag nachtragen“.
 
+### Suche im Archiv
+Lupe oben rechts in der Kopfzeile. In der Suche lautet der Seitentitel „Suche“. Suchfeld als Blatt
+(Radius 10) an Stelle der Monatszeile: Lupe links (Tinte weich), Platzhalter „Einträge durchsuchen“
+in Tinte blass, ✕ rechts (Tinte weich, nur sichtbar, wenn etwas im Feld steht; leert das Feld).
+Treffer als Archiv-Blätter mit Kicker „MONAT JAHR“; die Fundstellen im Vorschautext
+**halbfett (600)**, sonst gleiche Farbe wie der Text. Kürzt die Vorschau vorn, beginnt sie mit „…“.
+
 ### Tagesauswahl (Nachtragen)
 Eigener Dialog im Relic-Stil, Radius 20: Monatsraster ab Montag, **Punkt unter jedem Tag mit
 Eintrag**, heute umrandet, Zukunft blass und nicht wählbar.
