@@ -43,4 +43,36 @@ val PaperLight = RelicColors(
     success = Color(0xFF3A6B45),
 )
 
+/** Dunkelmodus: Tinte auf Papier umgekehrt (Werte aus design/papierlook.html). */
+val PaperDark = RelicColors(
+    paper = Color(0xFF1D1C1A),
+    sheet = Color(0xFF272522),
+    ink = Color(0xFFECE6DB),
+    inkSoft = Color(0xFFB5AEA2),
+    inkFaint = Color(0xFF7F796F),
+    rule = Color(0xFF47433D),
+    accent = Color(0xFFECE6DB),
+    onAccent = Color(0xFF1D1C1A),
+    success = Color(0xFF8FC29A),
+)
+
+/**
+ * Die wählbaren Akzentfarben, je mit einer Variante für hell und dunkel.
+ * `null` = Tinte (kein Farbakzent, Standard). Salbei und Ocker sind gegenüber der Vorlage
+ * in Hell etwas dunkler, damit „HEUTE“ und der Speichern-Knopf gut lesbar bleiben.
+ */
+enum class AccentColor(internal val light: Color?, internal val dark: Color?) {
+    INK(null, null),
+    SAGE(Color(0xFF4E6A4B), Color(0xFF9FBB98)),
+    PLUM(Color(0xFF7D4F6D), Color(0xFFCF9DBD)),
+    OCHRE(Color(0xFF8A6118), Color(0xFFDCAE5A)),
+}
+
+/** Die Farben für Hell oder Dunkel mit der gewählten Akzentfarbe. */
+fun relicColors(dark: Boolean, accent: AccentColor): RelicColors {
+    val base = if (dark) PaperDark else PaperLight
+    val color = (if (dark) accent.dark else accent.light) ?: return base
+    return base.copy(accent = color)
+}
+
 val LocalRelicColors = staticCompositionLocalOf { PaperLight }

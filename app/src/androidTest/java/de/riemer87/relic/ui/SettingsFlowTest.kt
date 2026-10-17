@@ -7,11 +7,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.core.net.toUri
@@ -19,6 +21,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.riemer87.relic.R
 import de.riemer87.relic.export.ExportRecord
+import de.riemer87.relic.ui.theme.AccentColor
+import de.riemer87.relic.ui.theme.Appearance
+import de.riemer87.relic.ui.theme.AppearanceSettings
+import de.riemer87.relic.ui.theme.ThemeMode
 import de.riemer87.relic.export.ExportState
 import de.riemer87.relic.export.ExportStatus
 import de.riemer87.relic.reminder.ReminderConfig
@@ -26,6 +32,7 @@ import de.riemer87.relic.reminder.ReminderScheduler
 import de.riemer87.relic.reminder.ReminderSettings
 import de.riemer87.relic.ui.theme.RelicTheme
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -48,11 +55,13 @@ class SettingsFlowTest {
     private val journalUri = "content://com.android.externalstorage.documents/tree/primary%3ADocuments%2FRelic".toUri()
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var before: ReminderConfig
+    private lateinit var appearanceBefore: Appearance
 
     private fun str(id: Int) = rule.activity.getString(id)
 
     @Before
     fun setUp() {
+        appearanceBefore = AppearanceSettings.get(context).appearance.value
         before = ReminderSettings(context).load()
         ReminderSettings(context).save(ReminderConfig(enabled = false))
         InstrumentationRegistry.getInstrumentation().uiAutomation
@@ -61,6 +70,8 @@ class SettingsFlowTest {
 
     @After
     fun tearDown() {
+        AppearanceSettings.get(context).setMode(appearanceBefore.mode)
+        AppearanceSettings.get(context).setAccent(appearanceBefore.accent)
         ExportStatus.update(ExportState.Idle)
         context.getSharedPreferences("export", android.content.Context.MODE_PRIVATE).edit().clear().commit()
         ReminderSettings(context).save(before)
@@ -78,9 +89,27 @@ class SettingsFlowTest {
         waitForText(str(R.string.settings_title))
     }
 
+    /**
+     * Wunsch aus Meilenstein 12: Die Seite beginnt mit der Darstellung; der Speicherort steht weiter unten,
+     * damit er nicht wirkt, als müsse man dort etwas tun.
+     */
+    @Test
+    fun sectionsAreInTheAgreedOrder() {
+        openSettings()
+        val locale = rule.activity.resources.configuration.locales[0]
+        val order = listOf(
+            R.string.settings_appearance, R.string.settings_reminder, R.string.settings_lock,
+            R.string.settings_folder, R.string.settings_export, R.string.settings_about,
+        ).map { id ->
+            rule.onNode(hasText(str(id).uppercase(locale))).fetchSemanticsNode().positionInRoot.y
+        }
+        assertEquals(order.sorted(), order)
+    }
+
     @Test
     fun settingsShowTheFolderInPlainWords() {
         openSettings()
+        rule.onNode(hasText(str(R.string.settings_folder_explain))).assertExists()
         rule.onNode(hasText("${str(R.string.settings_folder_internal)} › Documents › Relic")).assertExists()
     }
 
@@ -100,7 +129,7 @@ class SettingsFlowTest {
     @Test
     fun changeFolderShowsTheNoticeAboutOldEntries() {
         openSettings()
-        rule.onNode(hasText(str(R.string.settings_folder_change))).performClick()
+        rule.onNode(hasText(str(R.string.settings_folder_change))).performScrollTo().performClick()
         waitForText(str(R.string.folder_change_notice))
         rule.onNode(hasText(str(R.string.folder_recommended))).assertExists()
 
@@ -111,10 +140,30 @@ class SettingsFlowTest {
     @Test
     fun licensesAreShown() {
         openSettings()
-        rule.onNode(hasText(str(R.string.settings_licenses))).performClick()
+        rule.onNode(hasText(str(R.string.settings_licenses))).performScrollTo().performClick()
         rule.waitUntil(timeoutMillis = 5_000) {
             rule.onAllNodes(hasText("SIL Open Font License", substring = true)).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    /** Darstellung wählen: wirkt sofort (gemeinsamer Zustand) und bleibt gespeichert. */
+    @Test
+    fun appearanceChoiceIsAppliedAndSaved() {
+        AppearanceSettings.get(context).setMode(ThemeMode.SYSTEM)
+        AppearanceSettings.get(context).setAccent(AccentColor.INK)
+        openSettings()
+        rule.onNode(hasText(str(R.string.appearance_system))).assertIsSelected()
+
+        rule.onNode(hasText(str(R.string.appearance_dark))).performClick()
+        rule.onNode(hasText(str(R.string.accent_plum))).performClick()
+        rule.waitForIdle()
+
+        assertEquals(Appearance(ThemeMode.DARK, AccentColor.PLUM), AppearanceSettings.get(context).appearance.value)
+        rule.onNode(hasText(str(R.string.appearance_dark))).assertIsSelected()
+        rule.onNode(hasText(str(R.string.accent_plum))).assertIsSelected()
+        val prefs = context.getSharedPreferences("appearance", android.content.Context.MODE_PRIVATE)
+        assertEquals("DARK", prefs.getString("mode", null))
+        assertEquals("PLUM", prefs.getString("accent", null))
     }
 
     /** Während ein Export läuft: Fortschritt sichtbar, kein zweiter Start möglich. */

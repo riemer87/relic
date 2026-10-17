@@ -42,6 +42,7 @@
     <string name="settings_folder_internal">Internal storage</string>
     <string name="settings_folder_sd">SD card</string>
     <string name="settings_folder_unknown">Chosen folder</string>
+    <string name="settings_folder_explain">All your entries and photos are stored in this folder as plain files. You can open them without Relic too, for example on a computer.</string>
     <string name="settings_folder_change">Change folder</string>
     <string name="folder_change_notice">Your previous entries stay in the old folder. Afterwards Relic only shows the new folder.</string>
     <string name="settings_reminder">Daily reminder</string>
@@ -83,6 +84,16 @@
     <string name="cancel">Cancel</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Darstellung -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
+    <string name="appearance_system">Like the phone</string>
+    <string name="settings_accent">Accent color</string>
+    <string name="accent_ink">Ink</string>
+    <string name="accent_sage">Sage</string>
+    <string name="accent_plum">Plum</string>
+    <string name="accent_ochre">Ochre</string>
     <!-- Export -->
     <string name="settings_export">Export</string>
     <string name="settings_export_explain">Saves your whole journal with all photos as one ZIP file, for example to back it up on a computer.</string>

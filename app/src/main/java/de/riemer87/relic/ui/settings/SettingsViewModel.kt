@@ -13,6 +13,10 @@ import de.riemer87.relic.reminder.ReminderReceiver
 import de.riemer87.relic.reminder.ReminderScheduler
 import de.riemer87.relic.reminder.ReminderSettings
 import de.riemer87.relic.storage.FolderLabel
+import de.riemer87.relic.ui.theme.AccentColor
+import de.riemer87.relic.ui.theme.Appearance
+import de.riemer87.relic.ui.theme.AppearanceSettings
+import de.riemer87.relic.ui.theme.ThemeMode
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,6 +79,15 @@ class SettingsViewModel(application: Application, journalUri: Uri?) : AndroidVie
         } else {
             exportRecord.lastSuccess()?.let { LastExport(it, justNow = false) }
         }
+
+    private val appearanceSettings = AppearanceSettings.get(application)
+
+    /** Hell/Dunkel und Akzentfarbe; Änderungen wirken sofort in der ganzen App. */
+    val appearance: StateFlow<Appearance> = appearanceSettings.appearance
+
+    fun setThemeMode(mode: ThemeMode) = appearanceSettings.setMode(mode)
+
+    fun setAccent(accent: AccentColor) = appearanceSettings.setAccent(accent)
 
     fun startExport(target: Uri) = ExportService.start(getApplication(), target)
 

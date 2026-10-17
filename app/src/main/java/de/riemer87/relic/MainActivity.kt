@@ -1,6 +1,7 @@
 package de.riemer87.relic
 
 import android.graphics.Color
+import android.content.res.Configuration
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -9,6 +10,7 @@ import androidx.activity.viewModels
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,6 +46,7 @@ import de.riemer87.relic.ui.folder.FolderSetupScreen
 import de.riemer87.relic.ui.intro.IntroFlow
 import de.riemer87.relic.ui.intro.IntroSettings
 import de.riemer87.relic.ui.intro.firstIntroStep
+import de.riemer87.relic.ui.theme.AppearanceSettings
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
 import kotlinx.coroutines.Dispatchers
@@ -72,11 +75,8 @@ class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Papier ist immer hell: dunkle Symbole in Status- und Navigationsleiste, auch wenn das Handy im Dunkelmodus ist.
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
-        )
+        val appearance = AppearanceSettings.get(applicationContext)
+        applySystemBars(appearance.appearance.value.isDark(isSystemDark()))
         location = JournalLocation(applicationContext)
         introSettings = IntroSettings(applicationContext)
         val photoProcessor = PhotoProcessor(applicationContext)
@@ -101,7 +101,10 @@ class MainActivity : FragmentActivity() {
         val authenticator = BiometricAuthenticator(this, getString(R.string.lock_prompt_title), getString(R.string.lock_prompt_subtitle))
 
         setContent {
-            RelicTheme {
+            val look by appearance.appearance.collectAsStateWithLifecycle()
+            val dark = look.isDark(isSystemInDarkTheme())
+            LaunchedEffect(dark) { applySystemBars(dark) }
+            RelicTheme(look) {
                 val locked by appLock.locked.collectAsStateWithLifecycle()
                 val lockEnabled by appLock.enabled.collectAsStateWithLifecycle()
                 LaunchedEffect(lockEnabled) { hideFromRecents(lockEnabled) }
@@ -186,6 +189,15 @@ class MainActivity : FragmentActivity() {
         // Beim Drehen geht die App nicht wirklich in den Hintergrund.
         if (!isChangingConfigurations) appLock.onBackground()
     }
+
+    /** Symbole in Status- und Navigationsleiste: dunkel auf Papier, hell im Dunkelmodus. */
+    private fun applySystemBars(dark: Boolean) {
+        val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+    }
+
+    private fun isSystemDark(): Boolean =
+        (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
     /** Bei aktiver Sperre zeigt die App-Übersicht kein Bild vom Inhalt (Android 13+). */
     private fun hideFromRecents(hide: Boolean) {

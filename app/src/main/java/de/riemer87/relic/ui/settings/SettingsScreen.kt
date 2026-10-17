@@ -11,8 +11,10 @@ import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -48,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -55,6 +61,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -67,8 +74,12 @@ import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.lock.canUseAppLock
 import de.riemer87.relic.storage.FolderLabel
 import de.riemer87.relic.ui.currentLocale
+import de.riemer87.relic.ui.theme.AccentColor
+import de.riemer87.relic.ui.theme.Appearance
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
+import de.riemer87.relic.ui.theme.ThemeMode
+import de.riemer87.relic.ui.theme.relicColors
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -89,6 +100,7 @@ fun SettingsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val exportState by viewModel.export.collectAsStateWithLifecycle()
     val lastExport by viewModel.lastExport.collectAsStateWithLifecycle()
+    val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val deniedMessage = stringResource(R.string.settings_notifications_denied)
     val lockFailedMessage = stringResource(R.string.lock_enable_failed)
@@ -135,6 +147,9 @@ fun SettingsScreen(
         },
         exportState = exportState,
         lastExport = lastExport,
+        appearance = appearance,
+        onThemeModeChange = viewModel::setThemeMode,
+        onAccentChange = viewModel::setAccent,
         onExport = { chooseExportTarget.launch("Relic-Export-${LocalDate.now()}.zip") },
     )
 }
@@ -153,6 +168,9 @@ internal fun SettingsContent(
     onLockChange: (Boolean) -> Unit = {},
     exportState: ExportState = ExportState.Idle,
     lastExport: LastExport? = null,
+    appearance: Appearance = Appearance(),
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+    onAccentChange: (AccentColor) -> Unit = {},
     onExport: () -> Unit = {},
 ) {
     val colors = Relic.colors
@@ -176,11 +194,10 @@ internal fun SettingsContent(
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
 
-            Section(title = stringResource(R.string.settings_folder)) {
-                Text(folderText(state.folder), style = MaterialTheme.typography.bodyLarge, color = colors.ink)
-                OutlinedButton(onClick = onChangeFolder, shape = RoundedCornerShape(8.dp)) {
-                    Text(stringResource(R.string.settings_folder_change), color = colors.ink)
-                }
+            Section(title = stringResource(R.string.settings_appearance)) {
+                ThemeModeChoice(selected = appearance.mode, onSelect = onThemeModeChange)
+                Text(stringResource(R.string.settings_accent), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
+                AccentChoice(selected = appearance.accent, onSelect = onAccentChange)
             }
 
             Section(title = stringResource(R.string.settings_reminder)) {
@@ -233,6 +250,14 @@ internal fun SettingsContent(
                     Text(stringResource(R.string.settings_lock_unavailable), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
                 }
                 Text(stringResource(R.string.settings_lock_files_note), style = MaterialTheme.typography.bodySmall, color = colors.inkFaint)
+            }
+
+            Section(title = stringResource(R.string.settings_folder)) {
+                Text(stringResource(R.string.settings_folder_explain), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
+                Text(folderText(state.folder), style = MaterialTheme.typography.bodyLarge, color = colors.ink)
+                OutlinedButton(onClick = onChangeFolder, shape = RoundedCornerShape(8.dp)) {
+                    Text(stringResource(R.string.settings_folder_change), color = colors.ink)
+                }
             }
 
             Section(title = stringResource(R.string.settings_export)) {
@@ -311,6 +336,81 @@ private class CreateZipInDownloads : ActivityResultContracts.CreateDocument("app
 
     private companion object {
         val DOWNLOADS: Uri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Download")
+    }
+}
+
+/** Hell · Dunkel · Wie das Handy – drei Felder nebeneinander, das gewählte in Tinte gefüllt. */
+@Composable
+private fun ThemeModeChoice(selected: ThemeMode, onSelect: (ThemeMode) -> Unit) {
+    val colors = Relic.colors
+    val options = listOf(
+        ThemeMode.LIGHT to R.string.appearance_light,
+        ThemeMode.DARK to R.string.appearance_dark,
+        ThemeMode.SYSTEM to R.string.appearance_system,
+    )
+    Row(modifier = Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { (mode, label) ->
+            val isSelected = mode == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 44.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .then(
+                        if (isSelected) Modifier.background(colors.ink) else Modifier.border(1.dp, colors.rule, RoundedCornerShape(8.dp)),
+                    )
+                    .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(mode) }
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = stringResource(label),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (isSelected) colors.paper else colors.ink,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+/** Vier Farbtupfer mit Namen darunter; der gewählte bekommt einen Ring. */
+@Composable
+private fun AccentChoice(selected: AccentColor, onSelect: (AccentColor) -> Unit) {
+    val colors = Relic.colors
+    val dark = Relic.isDark
+    val names = mapOf(
+        AccentColor.INK to R.string.accent_ink,
+        AccentColor.SAGE to R.string.accent_sage,
+        AccentColor.PLUM to R.string.accent_plum,
+        AccentColor.OCHRE to R.string.accent_ochre,
+    )
+    Row(modifier = Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.SpaceBetween) {
+        AccentColor.entries.forEach { accent ->
+            val isSelected = accent == selected
+            Column(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(accent) }
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(2.dp, if (isSelected) colors.ink else Color.Transparent, CircleShape)
+                        .padding(5.dp)
+                        .clip(CircleShape)
+                        .background(relicColors(dark, accent).accent),
+                )
+                Text(
+                    stringResource(names.getValue(accent)),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isSelected) colors.ink else colors.inkSoft,
+                )
+            }
+        }
     }
 }
 
