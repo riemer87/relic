@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
@@ -16,6 +18,9 @@ import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.riemer87.relic.R
+import de.riemer87.relic.export.ExportRecord
+import de.riemer87.relic.export.ExportState
+import de.riemer87.relic.export.ExportStatus
 import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.reminder.ReminderScheduler
 import de.riemer87.relic.reminder.ReminderSettings
@@ -28,6 +33,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.time.Clock
 import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -54,6 +61,8 @@ class SettingsFlowTest {
 
     @After
     fun tearDown() {
+        ExportStatus.update(ExportState.Idle)
+        context.getSharedPreferences("export", android.content.Context.MODE_PRIVATE).edit().clear().commit()
         ReminderSettings(context).save(before)
         ReminderScheduler(context).apply(before)
     }
@@ -106,6 +115,81 @@ class SettingsFlowTest {
         rule.waitUntil(timeoutMillis = 5_000) {
             rule.onAllNodes(hasText("SIL Open Font License", substring = true)).fetchSemanticsNodes().isNotEmpty()
         }
+    }
+
+    /** Während ein Export läuft: Fortschritt sichtbar, kein zweiter Start möglich. */
+    @Test
+    fun runningExportShowsProgressAndBlocksSecondStart() {
+        ExportStatus.update(ExportState.Writing(done = 120, total = 340))
+        openSettings()
+
+        rule.onNode(hasText(rule.activity.resources.getQuantityString(R.plurals.export_writing, 340, 120, 340))).assertExists()
+        rule.onNode(hasText(str(R.string.settings_export_button))).assertIsNotEnabled()
+    }
+
+    /** „Am 17. Oktober 2026 um 01:40 Uhr“, wie auf dem Handy eingestellt. */
+    private fun exportedAtText(at: Instant): String {
+        val locale = rule.activity.resources.configuration.locales[0]
+        val local = at.atZone(ZoneId.systemDefault())
+        return rule.activity.getString(
+            R.string.export_done_at,
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(local),
+            DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale).format(local),
+        )
+    }
+
+    /** Fertig, während die Seite offen ist: „Export gespeichert“ mit Zeitpunkt. */
+    @Test
+    fun exportFinishingWhileOpenShowsSavedWithTimeAndFilesLeftOut() {
+        val at = Instant.parse("2026-10-16T23:40:00Z")
+        ExportStatus.update(ExportState.Writing(done = 300, total = 340))
+        openSettings()
+
+        rule.runOnIdle { ExportStatus.update(ExportState.Done(files = 340, skipped = 2, finishedAt = at)) }
+        rule.waitForIdle()
+
+        val res = rule.activity.resources
+        rule.onNode(hasText(res.getQuantityString(R.plurals.export_done, 340, 340))).assertExists()
+        rule.onNode(hasText(exportedAtText(at))).assertExists()
+        rule.onNode(hasText(res.getQuantityString(R.plurals.export_skipped, 2, 2), substring = true)).assertExists()
+        rule.onNode(hasText(str(R.string.settings_export_button))).assertIsEnabled()
+    }
+
+    /**
+     * Wunsch aus Meilenstein 10: Kommt man später wieder auf die Seite, steht „Letzter Export“ –
+     * sonst könnte man meinen, man hätte gerade eben exportiert.
+     */
+    @Test
+    fun reopeningSettingsAfterExportSaysLastExport() {
+        val at = Instant.parse("2026-10-16T23:40:00Z")
+        ExportRecord(context).saveSuccess(ExportState.Done(files = 14, skipped = 0, finishedAt = at))
+        ExportStatus.update(ExportState.Done(files = 14, skipped = 0, finishedAt = at))
+        openSettings()
+
+        val res = rule.activity.resources
+        rule.onNode(hasText(res.getQuantityString(R.plurals.export_last, 14, 14))).assertExists()
+        rule.onNode(hasText(res.getQuantityString(R.plurals.export_done, 14, 14))).assertDoesNotExist()
+        rule.onNode(hasText(exportedAtText(at))).assertExists()
+    }
+
+    /** App wurde nach dem Export beendet: Der Erfolg mit Zeitpunkt steht trotzdem in den Einstellungen. */
+    @Test
+    fun earlierSuccessIsShownAfterRestart() {
+        val at = Instant.parse("2026-10-15T19:05:00Z")
+        ExportRecord(context).saveSuccess(ExportState.Done(files = 12, skipped = 0, finishedAt = at))
+        ExportStatus.update(ExportState.Idle)
+        openSettings()
+
+        rule.onNode(hasText(rule.activity.resources.getQuantityString(R.plurals.export_last, 12, 12))).assertExists()
+        rule.onNode(hasText(exportedAtText(at))).assertExists()
+    }
+
+    @Test
+    fun failedExportExplainsThatNothingIncompleteIsLeft() {
+        ExportStatus.update(ExportState.Failed(targetDeleted = true, targetName = "Relic-Export.zip"))
+        openSettings()
+
+        rule.onNode(hasText(str(R.string.export_failed))).assertExists()
     }
 
     /** Tippen auf die Erinnerung öffnet die Eintragsseite von heute – auch wenn gerade eine andere Seite offen ist. */

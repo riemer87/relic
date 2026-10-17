@@ -9,6 +9,9 @@ import androidx.activity.viewModels
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,9 +21,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import de.riemer87.relic.export.ExportService
+import de.riemer87.relic.export.InterruptedExport
 import de.riemer87.relic.journal.TreeJournalStore
 import de.riemer87.relic.lock.AppLockGate
 import de.riemer87.relic.lock.AppLockViewModel
@@ -38,6 +44,7 @@ import de.riemer87.relic.ui.folder.FolderSetupScreen
 import de.riemer87.relic.ui.intro.IntroFlow
 import de.riemer87.relic.ui.intro.IntroSettings
 import de.riemer87.relic.ui.intro.firstIntroStep
+import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,6 +63,9 @@ class MainActivity : FragmentActivity() {
     /** Der eingerichtete Journal-Ordner, `null` solange keiner gewählt (oder der Zugriff verloren) ist. */
     private var journalUri by mutableStateOf<Uri?>(null)
     private var checked by mutableStateOf(false)
+
+    /** Beim Start gefunden: ein Export wurde unterbrochen (Hinweis anzeigen). */
+    private var interruptedExport by mutableStateOf<InterruptedExport?>(null)
 
     /** Wird hochgezählt, wenn die Eintragsseite von heute geöffnet werden soll (Tippen auf die Erinnerung). */
     private var openTodayRequest by mutableIntStateOf(0)
@@ -81,6 +91,12 @@ class MainActivity : FragmentActivity() {
             journalUri = withContext(Dispatchers.IO) { location.accessibleUri() }
             checked = true
         }
+        // Reste eines unterbrochenen Exports (z. B. Akku leer) wegräumen – nur beim echten Start.
+        if (savedInstanceState == null) {
+            lifecycleScope.launch {
+                interruptedExport = withContext(Dispatchers.IO) { ExportService.recoverInterrupted(applicationContext) }
+            }
+        }
 
         val authenticator = BiometricAuthenticator(this, getString(R.string.lock_prompt_title), getString(R.string.lock_prompt_subtitle))
 
@@ -91,6 +107,23 @@ class MainActivity : FragmentActivity() {
                 LaunchedEffect(lockEnabled) { hideFromRecents(lockEnabled) }
                 AppLockGate(locked = locked, authenticator = authenticator, onUnlocked = appLock::unlocked) {
                     AppContent(photoProcessor, authenticator, lockEnabled)
+                }
+                // Erst nach dem Entsperren zeigen – ein Dialog läge sonst über dem Sperrbildschirm.
+                interruptedExport?.takeIf { !locked }?.let { interrupted ->
+                    AlertDialog(
+                        onDismissRequest = { interruptedExport = null },
+                        text = {
+                            Text(
+                                if (interrupted.targetDeleted) {
+                                    stringResource(R.string.export_interrupted)
+                                } else {
+                                    stringResource(R.string.export_interrupted_not_deleted, interrupted.targetName)
+                                },
+                            )
+                        },
+                        confirmButton = { TextButton(onClick = { interruptedExport = null }) { Text(stringResource(R.string.ok)) } },
+                        containerColor = Relic.colors.sheet,
+                    )
                 }
             }
         }

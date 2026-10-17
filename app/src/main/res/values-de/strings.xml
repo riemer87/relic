@@ -77,6 +77,38 @@
     <string name="cancel">Abbrechen</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Export -->
+    <string name="settings_export">Export</string>
+    <string name="settings_export_explain">Speichert dein ganzes Tagebuch mit allen Fotos als eine ZIP-Datei, z. B. zum Sichern auf dem Computer.</string>
+    <string name="settings_export_button">Alles exportieren</string>
+    <string name="export_preparing">Dateien werden gesammelt …</string>
+    <plurals name="export_writing">
+        <item quantity="one">Exportiere … %1$d von %2$d Datei</item>
+        <item quantity="other">Exportiere … %1$d von %2$d Dateien</item>
+    </plurals>
+    <string name="export_verifying">Prüfe die ZIP-Datei … %1$d von %2$d</string>
+    <plurals name="export_done">
+        <item quantity="one">Export gespeichert · %d Datei</item>
+        <item quantity="other">Export gespeichert · %d Dateien</item>
+    </plurals>
+    <plurals name="export_last">
+        <item quantity="one">Letzter Export · %d Datei</item>
+        <item quantity="other">Letzter Export · %d Dateien</item>
+    </plurals>
+    <plurals name="export_skipped">
+        <item quantity="one">%d andere Datei im Ordner wurde nicht mitgenommen (stammt nicht von Relic).</item>
+        <item quantity="other">%d andere Dateien im Ordner wurden nicht mitgenommen (stammen nicht von Relic).</item>
+    </plurals>
+    <string name="export_done_at">Am %1$s um %2$s Uhr</string>
+    <string name="export_failed">Export fehlgeschlagen. Die unvollständige ZIP-Datei wurde gelöscht. Bitte versuche es noch einmal.</string>
+    <string name="export_failed_not_deleted">Export fehlgeschlagen. Bitte lösche die unvollständige Datei „%1$s“ selbst, sie ist keine vollständige Sicherung.</string>
+    <string name="export_interrupted">Der letzte Export wurde unterbrochen, zum Beispiel weil das Handy ausgegangen ist. Die unvollständige ZIP-Datei wurde gelöscht. Bitte exportiere noch einmal.</string>
+    <string name="export_interrupted_not_deleted">Der letzte Export wurde unterbrochen, zum Beispiel weil das Handy ausgegangen ist. Bitte lösche die unvollständige Datei „%1$s“ selbst, sie ist keine vollständige Sicherung. Exportiere danach noch einmal.</string>
+    <string name="export_notification_title">Relic exportiert dein Tagebuch</string>
+    <string name="export_done_title">Export gespeichert</string>
+    <string name="export_failed_title">Export fehlgeschlagen</string>
+    <string name="export_channel">Export</string>
+    <string name="export_channel_description">Fortschritt beim Exportieren des Tagebuchs.</string>
     <!-- Einführung beim ersten Start -->
     <string name="intro_step">Schritt %1$d von %2$d</string>
     <string name="intro_welcome_title">Deine Einträge gehören dir.</string>
@@ -114,5 +146,5 @@
 
     <!-- Erklär-Datei im Journal-Ordner -->
     <string name="readme_file_name">LIES MICH.txt</string>
-    <string name="readme_text" tools:ignore="TypographyDashes">Das ist dein Relic-Tagebuch.\n\nJeder Tag mit einem Eintrag ist eine eigene Textdatei. Die Dateien liegen in Ordnern nach Jahr und Monat, zum Beispiel:\n\n2026/10/2026-10-09.md\n\nDu kannst sie mit jedem Texteditor öffnen, auch ohne die Relic-App.\n\nSo ist eine Datei aufgebaut:\n\n- Ganz oben, zwischen zwei Linien aus drei Strichen (---), stehen das Datum und wann der Eintrag angelegt und zuletzt geändert wurde.\n- Darunter steht dein Text. Er ist in Markdown geschrieben: **fett**, *kursiv* und Aufzählungen mit einem Strich am Zeilenanfang.\n- Fotos liegen als JPEG-Dateien neben dem Eintrag (zum Beispiel 2026-10-09_1.jpg). Am Ende des Textes stehen sie nach der Zeile &lt;!-- relic:photos --&gt; noch einmal, damit auch andere Programme sie anzeigen können.\n\nTipp: Sichere diesen Ordner regelmäßig, zum Beispiel auf einen Computer oder in die Cloud.\n</string>
+    <string name="readme_text" tools:ignore="TypographyDashes">RELIC · Deine Einträge gehören dir.\nhttps://relicjournalapp.com\n\n\nDas ist dein Relic-Tagebuch.\n\nJeder Tag mit einem Eintrag ist eine eigene Textdatei. Die Dateien liegen in Ordnern nach Jahr und Monat, zum Beispiel:\n\n2026/10/2026-10-09.md\n\nDu kannst sie mit jedem Texteditor öffnen, auch ohne die Relic-App.\n\nSo ist eine Datei aufgebaut:\n\n- Ganz oben, zwischen zwei Linien aus drei Strichen (---), stehen das Datum und wann der Eintrag angelegt und zuletzt geändert wurde.\n- Darunter steht dein Text. Er ist in Markdown geschrieben: **fett**, *kursiv* und Aufzählungen mit einem Strich am Zeilenanfang.\n- Fotos liegen als JPEG-Dateien neben dem Eintrag (zum Beispiel 2026-10-09_1.jpg). Am Ende des Textes stehen sie nach der Zeile &lt;!-- relic:photos --&gt; noch einmal, damit auch andere Programme sie anzeigen können.\n\nTipp: Sichere diesen Ordner regelmäßig, zum Beispiel auf einen Computer oder in die Cloud.\n\n\nRelic speichert deine Einträge als ganz normale Dateien, die du auch in 30 Jahren noch lesen kannst – selbst wenn es die App nicht mehr gibt.\nMehr über Relic: https://relicjournalapp.com\n</string>
 </resources>

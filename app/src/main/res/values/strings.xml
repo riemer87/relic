@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Relic</string>
+    <string name="website_url" translatable="false">https://relicjournalapp.com</string>
+    <string name="website_label" translatable="false">relicjournalapp.com</string>
 
     <!-- Datumsformat im Kopf der Eintragsseite, z. B. "Friday · October 9" -->
     <string name="entry_date_pattern">EEEE · MMMM d</string>
@@ -81,6 +83,38 @@
     <string name="cancel">Cancel</string>
 
     <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Export -->
+    <string name="settings_export">Export</string>
+    <string name="settings_export_explain">Saves your whole journal with all photos as one ZIP file, for example to back it up on a computer.</string>
+    <string name="settings_export_button">Export everything</string>
+    <string name="export_preparing">Collecting files …</string>
+    <plurals name="export_writing">
+        <item quantity="one">Exporting … %1$d of %2$d file</item>
+        <item quantity="other">Exporting … %1$d of %2$d files</item>
+    </plurals>
+    <string name="export_verifying">Checking the ZIP file … %1$d of %2$d</string>
+    <plurals name="export_done">
+        <item quantity="one">Export saved · %d file</item>
+        <item quantity="other">Export saved · %d files</item>
+    </plurals>
+    <plurals name="export_last">
+        <item quantity="one">Last export · %d file</item>
+        <item quantity="other">Last export · %d files</item>
+    </plurals>
+    <plurals name="export_skipped">
+        <item quantity="one">%d other file in the folder was not included (it is not from Relic).</item>
+        <item quantity="other">%d other files in the folder were not included (they are not from Relic).</item>
+    </plurals>
+    <string name="export_done_at">On %1$s at %2$s</string>
+    <string name="export_failed">Export failed. The incomplete ZIP file was deleted. Please try again.</string>
+    <string name="export_failed_not_deleted">Export failed. Please delete the incomplete file “%1$s” yourself, it is not a complete backup.</string>
+    <string name="export_interrupted">The last export was interrupted, for example because the phone turned off. The incomplete ZIP file was deleted. Please export again.</string>
+    <string name="export_interrupted_not_deleted">The last export was interrupted, for example because the phone turned off. Please delete the incomplete file “%1$s” yourself, it is not a complete backup. Then export again.</string>
+    <string name="export_notification_title">Relic is exporting your journal</string>
+    <string name="export_done_title">Export saved</string>
+    <string name="export_failed_title">Export failed</string>
+    <string name="export_channel">Export</string>
+    <string name="export_channel_description">Progress while exporting your journal.</string>
     <!-- Einführung beim ersten Start -->
     <string name="intro_step">Step %1$d of %2$d</string>
     <string name="intro_welcome_title">Your entries belong to you.</string>
@@ -118,5 +152,5 @@
 
     <!-- Erklär-Datei im Journal-Ordner -->
     <string name="readme_file_name">README.txt</string>
-    <string name="readme_text" tools:ignore="TypographyDashes">This is your Relic journal.\n\nEvery day with an entry is its own text file. The files are sorted into folders by year and month, for example:\n\n2026/10/2026-10-09.md\n\nYou can open them with any text editor, even without the Relic app.\n\nHow a file is built:\n\n- At the very top, between two lines of three dashes (---), you find the date and when the entry was created and last changed.\n- Below that is your text. It is written in Markdown: **bold**, *italic*, and lists with a dash at the start of a line.\n- Photos are stored as JPEG files next to the entry (for example 2026-10-09_1.jpg). At the end of the text they are listed again after the line &lt;!-- relic:photos --&gt; so that other programs can show them.\n\nTip: Back up this folder regularly, for example to a computer or the cloud.\n</string>
+    <string name="readme_text" tools:ignore="TypographyDashes">RELIC · Your entries belong to you.\nhttps://relicjournalapp.com\n\n\nThis is your Relic journal.\n\nEvery day with an entry is its own text file. The files are sorted into folders by year and month, for example:\n\n2026/10/2026-10-09.md\n\nYou can open them with any text editor, even without the Relic app.\n\nHow a file is built:\n\n- At the very top, between two lines of three dashes (---), you find the date and when the entry was created and last changed.\n- Below that is your text. It is written in Markdown: **bold**, *italic*, and lists with a dash at the start of a line.\n- Photos are stored as JPEG files next to the entry (for example 2026-10-09_1.jpg). At the end of the text they are listed again after the line &lt;!-- relic:photos --&gt; so that other programs can show them.\n\nTip: Back up this folder regularly, for example to a computer or the cloud.\n\n\nRelic saves your entries as plain files that you can still read in 30 years – even if the app no longer exists.\nMore about Relic: https://relicjournalapp.com\n</string>
 </resources>

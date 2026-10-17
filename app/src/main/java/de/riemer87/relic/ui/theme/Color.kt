@@ -27,6 +27,8 @@ data class RelicColors(
     val accent: Color,
     /** Schrift auf dem Akzent */
     val onAccent: Color,
+    /** Erfolgsmeldungen, z. B. „Export gespeichert“ (gedecktes Grün, gut lesbar auf Papier und Blatt) */
+    val success: Color,
 )
 
 val PaperLight = RelicColors(
@@ -38,6 +40,7 @@ val PaperLight = RelicColors(
     rule = Color(0xFFC9C0B2),
     accent = Color(0xFF24221E),
     onAccent = Color(0xFFF8F4EC),
+    success = Color(0xFF3A6B45),
 )
 
 val LocalRelicColors = staticCompositionLocalOf { PaperLight }

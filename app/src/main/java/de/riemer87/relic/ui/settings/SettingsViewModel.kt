@@ -4,16 +4,30 @@ import android.app.Application
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.lifecycle.AndroidViewModel
+import de.riemer87.relic.export.ExportRecord
+import de.riemer87.relic.export.ExportService
+import de.riemer87.relic.export.ExportState
+import de.riemer87.relic.export.ExportStatus
 import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.reminder.ReminderReceiver
 import de.riemer87.relic.reminder.ReminderScheduler
 import de.riemer87.relic.reminder.ReminderSettings
 import de.riemer87.relic.storage.FolderLabel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalTime
+
+/**
+ * @param justNow gerade eben fertig geworden, während die Seite offen war („Export gespeichert“);
+ *   sonst ein früherer Export („Letzter Export“)
+ */
+data class LastExport(val done: ExportState.Done, val justNow: Boolean)
 
 data class SettingsUiState(
     val folder: FolderLabel.Parts?,
@@ -41,6 +55,28 @@ class SettingsViewModel(application: Application, journalUri: Uri?) : AndroidVie
     init {
         refreshNotificationState()
     }
+
+    /** Stand von „Alles exportieren“ (läuft als eigener Dienst weiter, auch ohne diese Seite). */
+    val export: StateFlow<ExportState> = ExportStatus.state
+
+    private val exportRecord = ExportRecord(application)
+
+    /** So stand der Export beim Öffnen der Seite – ein schon fertiger gilt dann nicht mehr als „gerade eben“. */
+    private val exportAtOpen = ExportStatus.state.value
+
+    /** Letzter erfolgreicher Export: gerade eben auf dieser Seite beendet, oder gespeichert von früher. */
+    val lastExport: StateFlow<LastExport?> = ExportStatus.state
+        .map(::lastExportFor)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, lastExportFor(exportAtOpen))
+
+    private fun lastExportFor(state: ExportState): LastExport? =
+        if (state is ExportState.Done && state != exportAtOpen) {
+            LastExport(state, justNow = true)
+        } else {
+            exportRecord.lastSuccess()?.let { LastExport(it, justNow = false) }
+        }
+
+    fun startExport(target: Uri) = ExportService.start(getApplication(), target)
 
     fun setReminderEnabled(enabled: Boolean) = update(_state.value.reminder.copy(enabled = enabled))
 

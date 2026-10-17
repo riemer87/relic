@@ -1,8 +1,11 @@
 package de.riemer87.relic.ui.settings
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.DocumentsContract
 import android.provider.Settings
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,6 +20,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,21 +49,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
+import de.riemer87.relic.export.ExportService
+import de.riemer87.relic.export.ExportState
 import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.lock.canUseAppLock
 import de.riemer87.relic.storage.FolderLabel
 import de.riemer87.relic.ui.currentLocale
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
+import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -73,11 +87,18 @@ fun SettingsScreen(
     onLockEnabledChange: (Boolean) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val exportState by viewModel.export.collectAsStateWithLifecycle()
+    val lastExport by viewModel.lastExport.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val deniedMessage = stringResource(R.string.settings_notifications_denied)
     val lockFailedMessage = stringResource(R.string.lock_enable_failed)
     val lockAvailable = remember { canUseAppLock(context) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshNotificationState() }
+
+    // „Speichern unter“ von Android: Ort und Namen der ZIP-Datei wählen.
+    val chooseExportTarget = rememberLauncherForActivityResult(CreateZipInDownloads()) { uri ->
+        uri?.let(viewModel::startExport)
+    }
 
     // Android 13+: Erlaubnis für Benachrichtigungen erst beim Einschalten erfragen.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -112,6 +133,9 @@ fun SettingsScreen(
                 onLockEnabledChange(false)
             }
         },
+        exportState = exportState,
+        lastExport = lastExport,
+        onExport = { chooseExportTarget.launch("Relic-Export-${LocalDate.now()}.zip") },
     )
 }
 
@@ -127,6 +151,9 @@ internal fun SettingsContent(
     lockEnabled: Boolean = false,
     lockAvailable: Boolean = true,
     onLockChange: (Boolean) -> Unit = {},
+    exportState: ExportState = ExportState.Idle,
+    lastExport: LastExport? = null,
+    onExport: () -> Unit = {},
 ) {
     val colors = Relic.colors
     var timeDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -208,8 +235,33 @@ internal fun SettingsContent(
                 Text(stringResource(R.string.settings_lock_files_note), style = MaterialTheme.typography.bodySmall, color = colors.inkFaint)
             }
 
+            Section(title = stringResource(R.string.settings_export)) {
+                Text(stringResource(R.string.settings_export_explain), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
+                OutlinedButton(onClick = onExport, enabled = !exportState.isRunning, shape = RoundedCornerShape(8.dp)) {
+                    Text(stringResource(R.string.settings_export_button), color = if (exportState.isRunning) colors.inkFaint else colors.ink)
+                }
+                if (exportState.isRunning || exportState is ExportState.Failed) {
+                    val context = LocalContext.current
+                    Text(
+                        text = ExportService.progressText(context, exportState),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (exportState is ExportState.Failed) colors.ink else colors.inkSoft,
+                    )
+                }
+                if (!exportState.isRunning) lastExport?.let { ExportSuccess(it) }
+            }
+
             Section(title = stringResource(R.string.settings_about)) {
                 Text(stringResource(R.string.settings_version, state.version), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
+                val uriHandler = LocalUriHandler.current
+                val websiteUrl = stringResource(R.string.website_url)
+                Text(
+                    text = stringResource(R.string.website_label),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = colors.ink,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable(role = Role.Button) { uriHandler.openUri(websiteUrl) }.padding(vertical = 6.dp),
+                )
                 Text(
                     text = stringResource(R.string.settings_licenses),
                     style = MaterialTheme.typography.bodyLarge,
@@ -247,6 +299,60 @@ internal fun SettingsContent(
             containerColor = colors.sheet,
         )
     }
+}
+
+/**
+ * „Speichern unter“ für die ZIP-Datei, beginnend in „Downloads“. Sonst öffnet Android den zuletzt
+ * benutzten Ort – oft den Tagebuch-Ordner selbst, und dort gehört der Export nicht hin.
+ */
+private class CreateZipInDownloads : ActivityResultContracts.CreateDocument("application/zip") {
+    override fun createIntent(context: Context, input: String): Intent =
+        super.createIntent(context, input).putExtra(DocumentsContract.EXTRA_INITIAL_URI, DOWNLOADS)
+
+    private companion object {
+        val DOWNLOADS: Uri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Download")
+    }
+}
+
+/** Der letzte erfolgreiche Export: grüner Haken, Anzahl Dateien, Datum und Uhrzeit. */
+@Composable
+private fun ExportSuccess(last: LastExport) {
+    val colors = Relic.colors
+    val done = last.done
+    Row {
+        Icon(
+            painterResource(R.drawable.ic_check),
+            contentDescription = null,
+            tint = colors.success,
+            modifier = Modifier.padding(top = 2.dp).size(18.dp),
+        )
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(
+                text = pluralStringResource(if (last.justNow) R.plurals.export_done else R.plurals.export_last, done.files, done.files),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = colors.success,
+            )
+            done.finishedAt?.let { Text(exportedAt(it), style = MaterialTheme.typography.bodyMedium, color = colors.success) }
+        }
+    }
+    if (done.skipped > 0) {
+        Text(
+            pluralStringResource(R.plurals.export_skipped, done.skipped, done.skipped),
+            style = MaterialTheme.typography.bodySmall,
+            color = colors.inkSoft,
+        )
+    }
+}
+
+/** „Am 17. Oktober 2026 um 01:40 Uhr“ in der Sprache und Zeitzone des Handys. */
+@Composable
+private fun exportedAt(at: Instant): String {
+    val locale = currentLocale()
+    val local = at.atZone(ZoneId.systemDefault())
+    val date = remember(at, locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale).format(local) }
+    return stringResource(R.string.export_done_at, date, formatTime(local.toLocalTime()))
 }
 
 /** Schalter in Relic-Farben. */

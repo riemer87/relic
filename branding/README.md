@@ -3,6 +3,8 @@
 Das App-Symbol von Relic: ein großes, angeschnittenes „R“ mit dem Punkt aus dem Zeitstrahl,
 Tinte (`#24221E`) auf Papier (`#EFE9DF`).
 
+Website: https://relicjournalapp.com
+
 | Datei | Wofür |
 |---|---|
 | `relic-icon.svg` | Vektor, quadratisch – Website, Druck, beliebig skalierbar |
