@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupHint
 import de.riemer87.relic.journal.DayLabel
 import de.riemer87.relic.journal.Timeline
 import de.riemer87.relic.journal.TimelineDay
@@ -43,6 +45,7 @@ import de.riemer87.relic.ui.DateText
 import de.riemer87.relic.ui.DayPreview
 import de.riemer87.relic.ui.DayPreviewContent
 import de.riemer87.relic.ui.DaySheet
+import de.riemer87.relic.ui.dashedOutline
 import de.riemer87.relic.ui.currentLocale
 import de.riemer87.relic.ui.theme.FrauncesDisplay
 import de.riemer87.relic.ui.theme.KickerStyle
@@ -65,6 +68,8 @@ fun TimelineScreen(
     viewModel: TimelineViewModel,
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
+    backupHint: BackupHint? = null,
+    onOpenBackup: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val previews by viewModel.previews.collectAsStateWithLifecycle()
@@ -77,6 +82,8 @@ fun TimelineScreen(
         onOpenDay = onOpenDay,
         onOpenArchive = onOpenArchive,
         onDayVisible = viewModel::requestPreview,
+        backupHint = backupHint,
+        onOpenBackup = onOpenBackup,
     )
 }
 
@@ -91,6 +98,8 @@ internal fun TimelineContent(
     onOpenDay: (LocalDate) -> Unit,
     onOpenArchive: () -> Unit,
     onDayVisible: (LocalDate) -> Unit,
+    backupHint: BackupHint? = null,
+    onOpenBackup: () -> Unit = {},
 ) {
     val colors = Relic.colors
 
@@ -106,7 +115,10 @@ internal fun TimelineContent(
             val label = Timeline.label(day.date, state.today)
             val onClick = { onOpenDay(day.date) }
             when {
-                label == DayLabel.TODAY -> TodaySheet(day, previews[day.date], onClick)
+                label == DayLabel.TODAY -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    TodaySheet(day, previews[day.date], onClick)
+                    backupHint?.let { BackupHintRow(it, onOpenBackup) }
+                }
                 day.hasEntry -> EntrySheet(day, label, previews[day.date], onClick)
                 else -> EmptyDayRow(day, label, onClick)
             }
@@ -206,6 +218,35 @@ private fun EmptyDayRow(day: TimelineDay, label: DayLabel, onClick: () -> Unit) 
             fontWeight = FontWeight.Medium,
             color = colors.ink,
         )
+    }
+}
+
+/**
+ * Ruhige Erinnerung ans Sichern (siehe [de.riemer87.relic.backup.BackupReminder]): gestrichelte Zeile
+ * unter dem Blatt für heute, antippen führt zu Einstellungen › Automatische Sicherung.
+ */
+@Composable
+private fun BackupHintRow(hint: BackupHint, onClick: () -> Unit) {
+    val colors = Relic.colors
+    val text = when (hint) {
+        is BackupHint.Overdue -> hint.days?.let { pluralStringResource(R.plurals.backup_hint_overdue, it.toInt(), it.toInt()) }
+            ?: stringResource(R.string.backup_hint_never)
+        BackupHint.NotWorking -> stringResource(R.string.backup_hint_broken)
+    }
+    val action = stringResource(if (hint is BackupHint.NotWorking) R.string.backup_hint_view else R.string.backup_hint_action)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(SheetShape)
+            .dashedOutline(colors.rule)
+            .clickable(role = Role.Button, onClick = onClick)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft, modifier = Modifier.weight(1f))
+        Spacer(Modifier.width(12.dp))
+        Text("$action →", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = colors.ink)
     }
 }
 

@@ -24,19 +24,28 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupHint
+import de.riemer87.relic.backup.BackupReminder
+import de.riemer87.relic.backup.BackupSettings
+import de.riemer87.relic.export.ExportRecord
+import de.riemer87.relic.export.ExportStatus
 import de.riemer87.relic.journal.JournalStore
 import de.riemer87.relic.journal.JournalTextCache
 import de.riemer87.relic.journal.localToday
@@ -63,7 +72,10 @@ import java.time.LocalDate
 private const val HOME = "home"
 private const val ENTRY = "entry/{date}"
 private const val SEARCH = "search"
-private const val SETTINGS = "settings"
+private const val SETTINGS = "settings?section={section}"
+
+/** Einstellungen öffnen und gleich zur automatischen Sicherung scrollen (aus dem Hinweis auf „Diese Woche“). */
+private const val SETTINGS_BACKUP = "settings?section=backup"
 private const val FOLDER = "folder"
 
 /** Dauer eines Seitenwechsels; beim Hinausgehen die Hälfte, damit die neue Seite gleich frei liegt. */
@@ -146,16 +158,19 @@ fun RelicApp(
                     var tab by rememberSaveable { mutableStateOf(HomeTab.WEEK) }
                     // Archiv schon beim Start im Hintergrund vorbereiten, damit der erste Wechsel sofort fertig ist.
                     LaunchedEffect(archive) { archive.refresh() }
+                    val backupHint = rememberBackupHint(timeline, clock)
                     HomeScreen(
                         tab = tab,
                         onTabChange = { tab = it },
-                        onOpenSettings = { navigateFrom(HOME, SETTINGS) },
+                        onOpenSettings = { navigateFrom(HOME, "settings") },
                         onOpenSearch = { navigateFrom(HOME, SEARCH) },
                         week = {
                             TimelineScreen(
                                 viewModel = timeline,
                                 onOpenDay = { date -> navigateFrom(HOME, "entry/$date") },
                                 onOpenArchive = { tab = HomeTab.ARCHIVE },
+                                backupHint = backupHint,
+                                onOpenBackup = { navigateFrom(HOME, SETTINGS_BACKUP) },
                             )
                         },
                         archive = {
@@ -172,8 +187,12 @@ fun RelicApp(
                         onOpenDay = { date -> navigateFrom(SEARCH, "entry/$date") },
                     )
                 }
-                composable(SETTINGS) {
+                composable(
+                    SETTINGS,
+                    arguments = listOf(navArgument("section") { type = NavType.StringType; nullable = true; defaultValue = null }),
+                ) { backStackEntry ->
                     SettingsScreen(
+                        focusBackup = backStackEntry.arguments?.getString("section") == "backup",
                         viewModel = viewModel(
                             factory = viewModelFactory { initializer { SettingsViewModel(this[APPLICATION_KEY]!!, journalUri) } },
                         ),
@@ -217,4 +236,29 @@ fun RelicApp(
             }
         }
     }
+}
+
+/**
+ * Erinnerung ans Sichern für „Diese Woche“ ([BackupReminder]): aus automatischer Sicherung,
+ * letztem Export und ob es überhaupt Einträge gibt. Aktualisiert sich, sobald gesichert wurde.
+ */
+@Composable
+private fun rememberBackupHint(timeline: TimelineViewModel, clock: Clock): BackupHint? {
+    val context = LocalContext.current
+    val backup by BackupSettings.get(context).info.collectAsStateWithLifecycle()
+    val export by ExportStatus.state.collectAsStateWithLifecycle()
+    val week by timeline.state.collectAsStateWithLifecycle()
+    val lastExport = remember(export) { ExportRecord(context).lastSuccess()?.finishedAt }
+    val zone = clock.zone
+    val lastSaved = listOfNotNull(
+        lastExport?.atZone(zone)?.toLocalDate(),
+        backup.newest?.toLocalDate(),
+    ).maxOrNull()
+    return BackupReminder.hint(
+        autoBackupOn = backup.enabled,
+        problem = backup.problem,
+        lastSaved = lastSaved,
+        hasEntries = week.hasAnyEntry,
+        today = week.today,
+    )
 }

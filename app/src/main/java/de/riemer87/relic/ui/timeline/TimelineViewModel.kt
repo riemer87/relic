@@ -27,6 +27,8 @@ data class TimelineUiState(
     val days: List<TimelineDay> = emptyList(),
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
+    /** Gibt es überhaupt Einträge (auch ältere)? Erst dann lohnt eine Erinnerung ans Sichern. */
+    val hasAnyEntry: Boolean = false,
 )
 
 /**
@@ -64,7 +66,9 @@ class TimelineViewModel(
                 _state.update { it.copy(isLoading = false, loadFailed = true) }
                 return@launch
             }
-            _state.update { it.copy(today = today, days = Timeline.days(today, dates), isLoading = false, loadFailed = false) }
+            _state.update {
+                it.copy(today = today, days = Timeline.days(today, dates), isLoading = false, loadFailed = false, hasAnyEntry = dates.isNotEmpty())
+            }
             dayPreviews.refresh(dates)
         }
     }

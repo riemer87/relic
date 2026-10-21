@@ -12,6 +12,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +47,8 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,6 +96,7 @@ import java.time.format.FormatStyle
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
+    focusBackup: Boolean = false,
     onBack: () -> Unit,
     onChangeFolder: () -> Unit,
     showMessage: (String) -> Unit,
@@ -169,6 +174,7 @@ fun SettingsScreen(
         backup = backup,
         backupFolder = backupFolder,
         backupWaiting = backupWaiting,
+        focusBackup = focusBackup,
         onBackupChange = { on ->
             // Ohne Ordner erst einen wählen; eingeschaltet wird dann nach der Wahl.
             if (on && backup.folder == null) backupHintOpen = true else viewModel.setBackupEnabled(on)
@@ -229,6 +235,7 @@ internal fun SettingsContent(
     backup: BackupInfo = BackupInfo(),
     backupFolder: FolderLabel.Parts? = null,
     backupWaiting: Boolean = false,
+    focusBackup: Boolean = false,
     onBackupChange: (Boolean) -> Unit = {},
     onChooseBackupFolder: () -> Unit = {},
     onBackUpNow: () -> Unit = {},
@@ -236,6 +243,16 @@ internal fun SettingsContent(
     val colors = Relic.colors
     var timeDialogOpen by rememberSaveable { mutableStateOf(false) }
     var licensesOpen by rememberSaveable { mutableStateOf(false) }
+    // Aus dem Hinweis auf „Diese Woche“: gleich zur automatischen Sicherung scrollen (nur beim ersten Öffnen).
+    val backupRequester = remember { BringIntoViewRequester() }
+    var focusedBackup by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(focusBackup) {
+        if (focusBackup && !focusedBackup) {
+            focusedBackup = true
+            withFrameNanos { } // erst nach dem ersten Zeichnen ist bekannt, wo der Abschnitt liegt
+            backupRequester.bringIntoView()
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(colors.paper)) {
         Row(modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)) {
@@ -320,14 +337,16 @@ internal fun SettingsContent(
                 }
             }
 
-            BackupSection(
-                backup = backup,
-                folder = backupFolder,
-                waiting = backupWaiting,
-                onEnabledChange = onBackupChange,
-                onChooseFolder = onChooseBackupFolder,
-                onBackUpNow = onBackUpNow,
-            )
+            Box(Modifier.bringIntoViewRequester(backupRequester)) {
+                BackupSection(
+                    backup = backup,
+                    folder = backupFolder,
+                    waiting = backupWaiting,
+                    onEnabledChange = onBackupChange,
+                    onChooseFolder = onChooseBackupFolder,
+                    onBackUpNow = onBackUpNow,
+                )
+            }
 
             Section(title = stringResource(R.string.settings_export)) {
                 Text(stringResource(R.string.settings_export_explain), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)

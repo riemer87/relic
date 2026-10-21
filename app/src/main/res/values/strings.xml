@@ -134,6 +134,14 @@
     <string name="backup_folder_choose_other">Choose another folder</string>
     <string name="settings_backup_waiting">Backup starting shortly …</string>
     <string name="backup_notification">Relic is backing up your journal …</string>
+    <plurals name="backup_hint_overdue">
+        <item quantity="one">No backup for %1$d day</item>
+        <item quantity="other">No backup for %1$d days</item>
+    </plurals>
+    <string name="backup_hint_never">Your journal isn\'t backed up yet</string>
+    <string name="backup_hint_broken">Automatic backup isn\'t working right now</string>
+    <string name="backup_hint_action">Back up</string>
+    <string name="backup_hint_view">View</string>
     <string name="export_preparing">Collecting files …</string>
     <plurals name="export_writing">
         <item quantity="one">Exporting … %1$d of %2$d file</item>

@@ -128,6 +128,14 @@
     <string name="backup_folder_choose_other">Anderen Ordner wählen</string>
     <string name="settings_backup_waiting">Sicherung startet gleich …</string>
     <string name="backup_notification">Relic sichert dein Tagebuch …</string>
+    <plurals name="backup_hint_overdue">
+        <item quantity="one">Seit %1$d Tag keine Sicherung</item>
+        <item quantity="other">Seit %1$d Tagen keine Sicherung</item>
+    </plurals>
+    <string name="backup_hint_never">Dein Tagebuch ist noch nicht gesichert</string>
+    <string name="backup_hint_broken">Die automatische Sicherung klappt gerade nicht</string>
+    <string name="backup_hint_action">Sichern</string>
+    <string name="backup_hint_view">Ansehen</string>
     <string name="export_preparing">Dateien werden gesammelt …</string>
     <plurals name="export_writing">
         <item quantity="one">Exportiere … %1$d von %2$d Datei</item>
