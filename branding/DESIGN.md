@@ -209,6 +209,8 @@ Eigener Dialog im Relic-Stil, Radius 20: Monatsraster ab Montag, **Punkt unter j
 Eintrag**, heute umrandet, Zukunft blass und nicht wählbar.
 
 ### Einführung
+Willkommensseite: Logo (72, weißer Kreis ohne Rand) vor dem Schriftzug „Relic“ (Fraunces 44, 600), Abstand 16 –
+wie die Kopfzeile, nur größer.
 Fortschrittspunkte oben (aktueller Schritt als kurzer Strich in Tinte, übrige als Punkte in
 Linie-Farbe), große Fraunces-Überschrift, Text in Tinte weich, Knöpfe unten.
 
