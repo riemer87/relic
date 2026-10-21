@@ -161,7 +161,7 @@ Kein Zeitstrahl. Abstand 20 unter den Reitern, 10 zwischen den Einträgen.
   stehen dort bis zu 3 Zeilen Text und die Fotos (56).
 - **Tage mit Eintrag:** Tagesblatt (siehe unten), Kicker „GESTERN“ bzw. Wochentag in Tinte weich.
 - **Leere Tage:** keine Fläche, nur eine schmale Zeile (mind. 48 hoch): Tageszahl klein (Fraunces 20,
-  Tinte blass), „Sonntag · nichts aufgeschrieben“ (Tinte weich), rechts „Nachtragen“ (500, Tinte).
+  Tinte blass), „Sonntag · nichts aufgeschrieben“ (Tinte weich), rechts mit mind. 12 Abstand „Nachtragen“ (500, Tinte); wird es eng, bricht der Text um.
 - **Sicherungs-Erinnerung** (nur wenn nötig: Sicherung aus und lange nicht gesichert, oder sie klappt nicht): direkt unter dem Blatt für heute
   eine gestrichelte Zeile (Radius 14, mind. 48 hoch, Innenabstand 16/12): Text in Tinte weich
   („Seit 34 Tagen keine Sicherung“), rechts „Sichern →“ bzw. „Ansehen →“ (500, Tinte).

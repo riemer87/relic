@@ -63,6 +63,9 @@ private const val TODAY_PREVIEW_MAX_LINES = 3
 /** Breite der Tageszahl-Spalte, damit leere Zeilen und Blätter bündig untereinander stehen. */
 private val NUMBER_COLUMN = 46.dp
 
+/** Mindestabstand zwischen „nichts aufgeschrieben“ und „Nachtragen“ in einer leeren Zeile. */
+internal val EMPTY_DAY_ACTION_GAP = 12.dp
+
 @Composable
 fun TimelineScreen(
     viewModel: TimelineViewModel,
@@ -211,6 +214,8 @@ private fun EmptyDayRow(day: TimelineDay, label: DayLabel, onClick: () -> Unit) 
             color = colors.inkSoft,
             modifier = Modifier.weight(1f),
         )
+        // Fester Abstand, sonst klebt „Nachtragen“ an langen Texten wie „Dienstag · nichts aufgeschrieben“.
+        Spacer(Modifier.width(EMPTY_DAY_ACTION_GAP))
         Text(
             text = stringResource(R.string.timeline_add),
             style = MaterialTheme.typography.bodyMedium,
