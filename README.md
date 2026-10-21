@@ -71,3 +71,13 @@ Kotlin, Jetpack Compose, Material 3, Storage Access Framework, WorkManager. minS
 Keine Internet-Berechtigung · No internet permission.
 Schriften / Fonts: [Fraunces](https://fonts.google.com/specimen/Fraunces) and
 [DM Sans](https://fonts.google.com/specimen/DM+Sans) (SIL Open Font License).
+
+## Lizenz · License
+
+Relic ist freie Software unter der [GNU General Public License v3.0](LICENSE): Du darfst den Code
+nutzen, verändern und weitergeben; veränderte Versionen müssen ebenfalls unter der GPL-3.0 stehen.
+Die Schriften stehen unter der SIL Open Font License (`app/src/main/assets/licenses/`).
+
+Relic is free software under the [GNU General Public License v3.0](LICENSE): you may use, change
+and share the code; modified versions must also be released under the GPL-3.0.
+The fonts are under the SIL Open Font License (`app/src/main/assets/licenses/`).

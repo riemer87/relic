@@ -85,7 +85,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
 
-    <!-- Ordner-Bildschirm (Texte laut CLAUDE.md) -->
+    <!-- Ordner-Bildschirm -->
     <!-- Suche im Archiv -->
     <string name="action_search">Search</string>
     <string name="tab_week">This week</string>

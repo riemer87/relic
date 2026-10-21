@@ -9,7 +9,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Die Versprechen „kein Internetzugriff“ und „keine Android-Gerätesicherung“ (CLAUDE.md, Rahmen) –
+ * Die Versprechen „kein Internetzugriff“ und „keine Android-Gerätesicherung“ (siehe README.md) –
  * geprüft an der fertig installierten App, also inklusive allem, was Bibliotheken mitbringen.
  */
 @RunWith(AndroidJUnit4::class)
