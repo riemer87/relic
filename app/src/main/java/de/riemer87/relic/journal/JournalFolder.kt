@@ -49,7 +49,13 @@ object JournalFolder {
     fun looksLikeJournal(tree: DocumentTree): Boolean {
         val root = tree.list("") ?: return false
         if (root.any { it in README_NAMES }) return true
+        return hasEntries(tree)
+    }
 
+    /** Gibt es mindestens eine Eintragsdatei an der richtigen Stelle (`JJJJ/MM/JJJJ-MM-TT.md`)? */
+    @Throws(IOException::class)
+    fun hasEntries(tree: DocumentTree): Boolean {
+        val root = tree.list("") ?: return false
         return root.filter { YEAR.matches(it) }.any { year ->
             tree.list(year).orEmpty().filter { MONTH.matches(it) }.any { month ->
                 tree.list("$year/$month").orEmpty().any { ENTRY.matches(it) && it.startsWith("$year-$month-") }

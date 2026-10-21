@@ -7,6 +7,7 @@ import androidx.compose.ui.test.performClick
 import androidx.core.net.toUri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupFolderChoice
 import de.riemer87.relic.backup.BackupInfo
 import de.riemer87.relic.backup.BackupSettings
 import de.riemer87.relic.storage.FolderLabel

@@ -109,11 +109,8 @@ fun SettingsScreen(
     val lastExport by viewModel.lastExport.collectAsStateWithLifecycle()
     val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val backup by viewModel.backup.collectAsStateWithLifecycle()
-    var backupHintOpen by rememberSaveable { mutableStateOf(false) }
     val backupFolder by viewModel.backupFolder.collectAsStateWithLifecycle()
     val backupWaiting by viewModel.backupWaiting.collectAsStateWithLifecycle()
-    // Abgelehnter Ordner: als Dialog, damit man es nicht übersieht (eine kurze Meldung unten ging unter).
-    var rejectedFolder by rememberSaveable { mutableStateOf<BackupFolderChoice?>(null) }
     val context = LocalContext.current
     val deniedMessage = stringResource(R.string.settings_notifications_denied)
     val lockFailedMessage = stringResource(R.string.lock_enable_failed)
@@ -125,12 +122,8 @@ fun SettingsScreen(
         uri?.let(viewModel::startExport)
     }
 
-    // Ordnerauswahl von Android für den Sicherungsordner, beginnend in „Dokumente“.
-    val chooseBackupFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val choice = viewModel.chooseBackupFolder(uri)
-        if (choice != BackupFolderChoice.OK) rejectedFolder = choice
-    }
+    // Sicherungsordner wählen: Hinweis, Android-Ordnerauswahl, Prüfung (gleich wie in der Einführung).
+    val chooseBackupFolder = rememberBackupFolderChooser(choose = viewModel::chooseBackupFolder)
 
     // Android 13+: Erlaubnis für Benachrichtigungen erst beim Einschalten erfragen.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -177,41 +170,12 @@ fun SettingsScreen(
         focusBackup = focusBackup,
         onBackupChange = { on ->
             // Ohne Ordner erst einen wählen; eingeschaltet wird dann nach der Wahl.
-            if (on && backup.folder == null) backupHintOpen = true else viewModel.setBackupEnabled(on)
+            if (on && backup.folder == null) chooseBackupFolder() else viewModel.setBackupEnabled(on)
         },
-        onChooseBackupFolder = { backupHintOpen = true },
+        onChooseBackupFolder = chooseBackupFolder,
         onBackUpNow = viewModel::backUpNow,
     )
 
-    rejectedFolder?.let { choice ->
-        BackupFolderRejectedDialog(
-            choice = choice,
-            onChooseOther = {
-                rejectedFolder = null
-                chooseBackupFolder.launch(DOCUMENTS)
-            },
-            onDismiss = { rejectedFolder = null },
-        )
-    }
-
-    if (backupHintOpen) {
-        val colors = Relic.colors
-        AlertDialog(
-            onDismissRequest = { backupHintOpen = false },
-            title = { Text(stringResource(R.string.backup_folder_hint_title)) },
-            text = { Text(stringResource(R.string.backup_folder_hint), style = MaterialTheme.typography.bodyMedium) },
-            confirmButton = {
-                TextButton(onClick = {
-                    backupHintOpen = false
-                    chooseBackupFolder.launch(DOCUMENTS)
-                }) { Text(stringResource(R.string.backup_folder_continue), color = colors.ink) }
-            },
-            dismissButton = {
-                TextButton(onClick = { backupHintOpen = false }) { Text(stringResource(R.string.cancel), color = colors.ink) }
-            },
-            containerColor = colors.sheet,
-        )
-    }
 }
 
 @Composable
@@ -418,9 +382,6 @@ internal fun SettingsContent(
  * „Speichern unter“ für die ZIP-Datei, beginnend in „Downloads“. Sonst öffnet Android den zuletzt
  * benutzten Ort – oft den Tagebuch-Ordner selbst, und dort gehört der Export nicht hin.
  */
-/** Startpunkt der Ordnerauswahl für Sicherungen: „Dokumente“. */
-private val DOCUMENTS: Uri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Documents")
-
 private class CreateZipInDownloads : ActivityResultContracts.CreateDocument("application/zip") {
     override fun createIntent(context: Context, input: String): Intent =
         super.createIntent(context, input).putExtra(DocumentsContract.EXTRA_INITIAL_URI, DOWNLOADS)

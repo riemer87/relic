@@ -44,6 +44,7 @@ import de.riemer87.relic.R
 import de.riemer87.relic.backup.BackupHint
 import de.riemer87.relic.backup.BackupReminder
 import de.riemer87.relic.backup.BackupSettings
+import de.riemer87.relic.backup.BackupWorker
 import de.riemer87.relic.export.ExportRecord
 import de.riemer87.relic.export.ExportStatus
 import de.riemer87.relic.journal.JournalStore
@@ -112,6 +113,7 @@ fun RelicApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val resources = LocalResources.current
+    val context = LocalContext.current
     val showMessage: (String) -> Unit = { message ->
         scope.launch {
             snackbarHostState.currentSnackbarData?.dismiss()
@@ -229,6 +231,9 @@ fun RelicApp(
                             // Zurück dorthin, wo man herkam („Diese Woche“ oder Archiv).
                             if (navController.currentDestination?.route == ENTRY) navController.popBackStack()
                             message?.let { showMessage(resources.getString(it)) }
+                            // Erster Eintrag gespeichert, automatische Sicherung an, aber noch keine Sicherung: gleich eine anlegen.
+                            val backup = BackupSettings.get(context).info.value
+                            if (message != null && backup.enabled && backup.count == 0) BackupWorker.runNow(context, force = false)
                         },
                         showMessage = showMessage,
                     )

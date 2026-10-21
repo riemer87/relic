@@ -1,6 +1,7 @@
 package de.riemer87.relic.ui.intro
 
 import android.Manifest
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,6 +51,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupFolderChoice
+import de.riemer87.relic.ui.settings.rememberBackupFolderChooser
 import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.ui.settings.TimeDialog
@@ -61,12 +64,13 @@ import de.riemer87.relic.ui.theme.RelicTheme
 import java.time.LocalTime
 
 /**
- * Die Einführung beim allerersten Start: Willkommen → Ordner → Erinnerung → App-Sperre.
+ * Die Einführung beim allerersten Start: Willkommen → Ordner → Erinnerung → App-Sperre → Sicherung.
  * @param folderStep der Ordner-Bildschirm; ruft `onReady` auf, sobald ein Ordner eingerichtet ist
  * @param onReminderAccepted „Ja, erinnere mich“ mit der gewählten Uhrzeit (Erlaubnis ist dann erteilt)
  * @param lockAvailable das Handy hat eine Displaysperre; sonst entfällt der Schritt App-Sperre
  * @param authenticator der Android-Entsperrdialog
  * @param onLockEnabled Entsperren hat geklappt: App-Sperre einschalten
+ * @param chooseBackupFolder übernimmt den gewählten Sicherungsordner und schaltet die Sicherung ein
  * @param onFinished die Einführung ist vorbei, die App beginnt
  */
 @Composable
@@ -76,6 +80,7 @@ fun IntroFlow(
     lockAvailable: Boolean,
     authenticator: Authenticator,
     onLockEnabled: () -> Unit,
+    chooseBackupFolder: (Uri) -> BackupFolderChoice,
     onFinished: () -> Unit,
     start: IntroStep = IntroStep.WELCOME,
 ) {
@@ -104,16 +109,20 @@ fun IntroFlow(
             )
         }
         IntroStep.LOCK -> {
-            BackHandler(onBack = onFinished)
+            BackHandler(onBack = ::next)
             LockStep(
                 progress = progress,
                 authenticator = authenticator,
                 onEnabled = {
                     onLockEnabled()
-                    onFinished()
+                    next()
                 },
-                onSkip = onFinished,
+                onSkip = ::next,
             )
+        }
+        IntroStep.BACKUP -> {
+            BackHandler(onBack = ::next)
+            BackupStep(progress = progress, chooseFolder = chooseBackupFolder, onDone = ::next)
         }
     }
 }
@@ -254,6 +263,28 @@ internal fun LockStep(progress: IntroProgress, authenticator: Authenticator, onE
                     .padding(14.dp),
             )
         }
+    }
+}
+
+/**
+ * Letzter Schritt: automatische Sicherung anbieten. „Ja, Ordner wählen“ führt über den bekannten Hinweis in
+ * die Ordnerauswahl (wie in den Einstellungen); „Vielleicht später“ überspringt – dann erinnert Relic
+ * nach einer Woche auf „Diese Woche“.
+ */
+@Composable
+internal fun BackupStep(progress: IntroProgress, chooseFolder: (Uri) -> BackupFolderChoice, onDone: () -> Unit) {
+    val colors = Relic.colors
+    val choose = rememberBackupFolderChooser(choose = chooseFolder, onChosen = onDone)
+    IntroPage(
+        progress = progress,
+        bottom = {
+            PrimaryButton(stringResource(R.string.intro_backup_yes), choose)
+            LaterButton(onDone)
+        },
+    ) {
+        IntroTitle(stringResource(R.string.intro_backup_title))
+        IntroText(stringResource(R.string.intro_backup_text))
+        Text(stringResource(R.string.intro_backup_note), style = MaterialTheme.typography.bodySmall, color = colors.inkFaint)
     }
 }
 

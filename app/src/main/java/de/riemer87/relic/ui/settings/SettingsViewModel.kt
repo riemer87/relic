@@ -4,7 +4,9 @@ import android.app.Application
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.lifecycle.AndroidViewModel
+import de.riemer87.relic.backup.BackupFolderChoice
 import de.riemer87.relic.backup.BackupInfo
+import de.riemer87.relic.backup.BackupSetup
 import de.riemer87.relic.backup.BackupSettings
 import de.riemer87.relic.backup.BackupWorker
 import de.riemer87.relic.export.ExportRecord
@@ -47,9 +49,6 @@ data class SettingsUiState(
     val notificationsBlocked: Boolean,
     val version: String,
 )
-
-/** Ergebnis der Wahl eines Sicherungsordners. */
-enum class BackupFolderChoice { OK, INSIDE_JOURNAL, NO_ACCESS }
 
 class SettingsViewModel(application: Application, private val journalUri: Uri?) : AndroidViewModel(application) {
 
@@ -117,34 +116,10 @@ class SettingsViewModel(application: Application, private val journalUri: Uri?) 
     val backupWaiting: StateFlow<Boolean> = BackupWorker.waiting(application)
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    /** Ein- oder ausschalten. Beim Einschalten gleich eine erste Sicherung anstoßen. */
-    fun setBackupEnabled(enabled: Boolean) {
-        backupSettings.setEnabled(enabled)
-        BackupWorker.schedule(getApplication(), enabled)
-        if (enabled) BackupWorker.runNow(getApplication(), force = false)
-    }
+    fun setBackupEnabled(enabled: Boolean) = BackupSetup.setEnabled(getApplication(), enabled)
 
     /** Neuer Sicherungsordner aus der Ordnerauswahl; schaltet die Sicherung ein. */
-    fun chooseBackupFolder(folder: Uri): BackupFolderChoice {
-        if (journalUri != null && BackupSettings.isSameOrInside(folder, journalUri)) return BackupFolderChoice.INSIDE_JOURNAL
-        val resolver = getApplication<Application>().contentResolver
-        try {
-            resolver.takePersistableUriPermission(folder, BackupWorker.ACCESS_FLAGS)
-        } catch (e: SecurityException) {
-            return BackupFolderChoice.NO_ACCESS
-        }
-        val old = backupSettings.info.value.folder
-        backupSettings.setFolder(folder)
-        if (old != null && old != folder && old != journalUri) {
-            try {
-                resolver.releasePersistableUriPermission(old, BackupWorker.ACCESS_FLAGS)
-            } catch (e: SecurityException) {
-                // Gab es nicht (mehr).
-            }
-        }
-        setBackupEnabled(true)
-        return BackupFolderChoice.OK
-    }
+    fun chooseBackupFolder(folder: Uri): BackupFolderChoice = BackupSetup.chooseFolder(getApplication(), folder, journalUri)
 
     /** „Jetzt sichern“: auch wenn sich nichts geändert hat. */
     fun backUpNow() = BackupWorker.runNow(getApplication(), force = true)

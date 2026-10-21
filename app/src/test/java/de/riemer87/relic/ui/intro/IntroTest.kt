@@ -23,15 +23,19 @@ class IntroTest {
         assertEquals(IntroStep.FOLDER, nextIntroStep(IntroStep.WELCOME, lockAvailable = true))
         assertEquals(IntroStep.REMINDER, nextIntroStep(IntroStep.FOLDER, lockAvailable = true))
         assertEquals(IntroStep.LOCK, nextIntroStep(IntroStep.REMINDER, lockAvailable = true))
-        assertNull(nextIntroStep(IntroStep.LOCK, lockAvailable = true))
-        assertEquals(4, introSteps(lockAvailable = true).size)
+        assertEquals(IntroStep.BACKUP, nextIntroStep(IntroStep.LOCK, lockAvailable = true))
+        assertNull(nextIntroStep(IntroStep.BACKUP, lockAvailable = true))
+        assertEquals(5, introSteps(lockAvailable = true).size)
     }
 
-    /** Ohne Displaysperre gibt es nichts zum Entsperren: Schritt entfällt, nur drei Punkte. */
+    /** Ohne Displaysperre gibt es nichts zum Entsperren: Schritt entfällt, nur vier Punkte. */
     @Test
-    fun withoutScreenLockTheIntroEndsAfterTheReminder() {
-        assertNull(nextIntroStep(IntroStep.REMINDER, lockAvailable = false))
-        assertEquals(listOf(IntroStep.WELCOME, IntroStep.FOLDER, IntroStep.REMINDER), introSteps(lockAvailable = false))
+    fun withoutScreenLockTheBackupFollowsTheReminder() {
+        assertEquals(IntroStep.BACKUP, nextIntroStep(IntroStep.REMINDER, lockAvailable = false))
+        assertEquals(
+            listOf(IntroStep.WELCOME, IntroStep.FOLDER, IntroStep.REMINDER, IntroStep.BACKUP),
+            introSteps(lockAvailable = false),
+        )
     }
 
     /** Ordner später verloren: kein Willkommen mehr, nur der Ordner-Bildschirm. */

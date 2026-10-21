@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupFolderChoice
 import de.riemer87.relic.backup.BackupInfo
 import de.riemer87.relic.backup.BackupProblem
 import de.riemer87.relic.storage.FolderLabel

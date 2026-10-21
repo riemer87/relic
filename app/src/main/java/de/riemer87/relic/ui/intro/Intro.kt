@@ -4,10 +4,11 @@ import android.content.Context
 import androidx.core.content.edit
 
 /** Die Schritte der Einführung beim allerersten Start. */
-enum class IntroStep { WELCOME, FOLDER, REMINDER, LOCK }
+enum class IntroStep { WELCOME, FOLDER, REMINDER, LOCK, BACKUP }
 
 /**
- * Die Schritte in ihrer Reihenfolge. Ohne Displaysperre am Handy entfällt die App-Sperre,
+ * Die Schritte in ihrer Reihenfolge; die automatische Sicherung kommt zuletzt (nach der Ordnerwahl soll
+ * nicht gleich wieder eine Ordnerauswahl folgen). Ohne Displaysperre am Handy entfällt die App-Sperre,
  * weil es dann nichts gibt, womit man entsperren könnte.
  */
 fun introSteps(lockAvailable: Boolean): List<IntroStep> =

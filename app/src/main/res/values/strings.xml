@@ -184,6 +184,10 @@
     <string name="intro_lock_text">When you open Relic, it asks for your fingerprint or your phone’s screen lock. That way your journal stays private, even if your phone is briefly in someone else’s hands.</string>
     <string name="intro_lock_note">The lock protects the app. The files in your folder stay plain files.</string>
     <string name="intro_lock_yes">Yes, lock the app</string>
+    <string name="intro_backup_title">Should Relic back up your journal?</string>
+    <string name="intro_backup_text">Once a week, Relic puts a backup as a ZIP file into a folder of your choice – ideally one that is also backed up off your phone, e.g. in the cloud.</string>
+    <string name="intro_backup_note">Not your journal folder, but a different one. Relic only keeps the latest backups and never touches other files.</string>
+    <string name="intro_backup_yes">Yes, choose a folder</string>
     <string name="folder_title">Where should your journal live?</string>
     <string name="folder_text">Relic saves every entry as a plain file on your phone. That way you can always open your entries, even without this app.</string>
     <string name="folder_recommended">Use recommended folder</string>

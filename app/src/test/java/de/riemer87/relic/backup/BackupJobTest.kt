@@ -174,6 +174,18 @@ class BackupJobTest {
         assertEquals(emptyList<String>(), backupNames())
     }
 
+    /** Direkt nach der Einführung gibt es noch keinen Eintrag: keine fast leere ZIP-Datei anlegen. */
+    @Test
+    fun `journal without entries is not backed up`() {
+        File(journalDir, "2026").deleteRecursively()
+
+        assertTrue(job().run(lastFingerprint = null, force = true) is BackupResult.Unchanged)
+        assertEquals(emptyList<String>(), backupNames())
+
+        put("2026/10/2026-10-21.md", "Erster Eintrag")
+        assertTrue(job().run(lastFingerprint = null, force = false) is BackupResult.Done)
+    }
+
     @Test
     fun `missing backup folder is a failure, not a crash`() {
         backupDir.deleteRecursively()

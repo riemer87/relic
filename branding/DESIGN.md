@@ -211,6 +211,8 @@ Eintrag**, heute umrandet, Zukunft blass und nicht wählbar.
 ### Einführung
 Willkommensseite: Logo (72, weißer Kreis ohne Rand) vor dem Schriftzug „Relic“ (Fraunces 44, 600), Abstand 16 –
 wie die Kopfzeile, nur größer.
+Letzter Schritt: automatische Sicherung anbieten (Aufbau wie der Sperr-Schritt: Titel, Text, Kleingedrucktes,
+Hauptknopf „Ja, Ordner wählen“, darunter „Vielleicht später“).
 Fortschrittspunkte oben (aktueller Schritt als kurzer Strich in Tinte, übrige als Punkte in
 Linie-Farbe), große Fraunces-Überschrift, Text in Tinte weich, Knöpfe unten.
 

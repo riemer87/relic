@@ -12,6 +12,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupFolderChoice
 import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.ui.theme.RelicTheme
@@ -62,6 +63,7 @@ class IntroFlowTest {
                         result(unlockSucceeds)
                     },
                     onLockEnabled = { lockEnabled = true },
+                    chooseBackupFolder = { BackupFolderChoice.OK },
                     onFinished = { finished = true },
                 )
             }
@@ -78,6 +80,17 @@ class IntroFlowTest {
         goToReminderStep()
         rule.onNode(hasText(str(R.string.intro_later))).performClick()
         rule.onNode(hasText(str(R.string.intro_lock_title))).assertExists()
+    }
+
+    private fun goToBackupStep() {
+        goToLockStep()
+        rule.onNode(hasText(str(R.string.intro_later))).performClick()
+        assertBackupStep()
+    }
+
+    private fun assertBackupStep() {
+        rule.onNode(hasText(str(R.string.intro_backup_title))).assertExists()
+        assertFalse(finished)
     }
 
     @Test
@@ -138,7 +151,7 @@ class IntroFlowTest {
 
         assertEquals(1, unlockAttempts)
         assertTrue(lockEnabled)
-        assertTrue(finished)
+        assertBackupStep()
     }
 
     /** Entsperren klappt nicht: Sperre bleibt aus, man bleibt auf dem Schritt und kann es erneut versuchen. */
@@ -160,11 +173,11 @@ class IntroFlowTest {
         rule.waitForIdle()
 
         assertTrue(lockEnabled)
-        assertTrue(finished)
+        assertBackupStep()
     }
 
     @Test
-    fun maybeLaterOnLockStepFinishesWithoutLock() {
+    fun maybeLaterOnLockStepContinuesWithoutLock() {
         startIntro()
         goToLockStep()
 
@@ -173,11 +186,11 @@ class IntroFlowTest {
 
         assertEquals(0, unlockAttempts)
         assertFalse(lockEnabled)
-        assertTrue(finished)
+        assertBackupStep()
     }
 
     @Test
-    fun backOnLockStepFinishesWithoutLock() {
+    fun backOnLockStepContinuesWithoutLock() {
         startIntro()
         goToLockStep()
 
@@ -185,21 +198,58 @@ class IntroFlowTest {
         rule.waitForIdle()
 
         assertFalse(lockEnabled)
-        assertTrue(finished)
+        assertBackupStep()
     }
 
-    /** Handy ohne Displaysperre: Nach der Erinnerung ist Schluss, die Punkte zeigen nur drei Schritte. */
+    /** Handy ohne Displaysperre: Nach der Erinnerung kommt gleich die Sicherung, die Punkte zeigen vier Schritte. */
     @Test
-    fun withoutScreenLockTheIntroEndsAfterReminder() {
+    fun withoutScreenLockTheBackupFollowsTheReminder() {
         startIntro(lockAvailable = false)
-        rule.onNode(hasContentDescription(rule.activity.getString(R.string.intro_step, 1, 3))).assertExists()
+        rule.onNode(hasContentDescription(rule.activity.getString(R.string.intro_step, 1, 4))).assertExists()
         goToReminderStep()
 
         rule.onNode(hasText(str(R.string.intro_later))).performClick()
         rule.waitForIdle()
 
-        assertTrue(finished)
+        assertBackupStep()
         assertEquals(0, unlockAttempts)
         rule.onNode(hasText(str(R.string.intro_lock_title))).assertDoesNotExist()
+    }
+
+    /** Letzter Schritt: Sicherung anbieten. „Vielleicht später“ beendet die Einführung. */
+    @Test
+    fun maybeLaterOnBackupStepFinishes() {
+        startIntro()
+        goToBackupStep()
+
+        rule.onNode(hasText(str(R.string.intro_later))).performClick()
+        rule.waitForIdle()
+
+        assertTrue(finished)
+    }
+
+    @Test
+    fun backOnBackupStepFinishes() {
+        startIntro()
+        goToBackupStep()
+
+        Espresso.pressBack()
+        rule.waitForIdle()
+
+        assertTrue(finished)
+    }
+
+    /** „Ja, Ordner wählen“ erklärt erst, was in der Android-Ordnerauswahl anzutippen ist. */
+    @Test
+    fun choosingABackupFolderStartsWithTheHint() {
+        startIntro()
+        goToBackupStep()
+
+        rule.onNode(hasText(str(R.string.intro_backup_yes))).performClick()
+        rule.onNode(hasText(str(R.string.backup_folder_hint_title))).assertExists()
+        rule.onNode(hasText(str(R.string.cancel))).performClick()
+        rule.waitForIdle()
+
+        assertBackupStep() // Abbrechen: man bleibt auf dem Schritt.
     }
 }

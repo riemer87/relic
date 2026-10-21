@@ -3,6 +3,7 @@ package de.riemer87.relic.backup
 import de.riemer87.relic.export.ExportJob
 import de.riemer87.relic.export.ExportState
 import de.riemer87.relic.journal.DocumentTree
+import de.riemer87.relic.journal.JournalFolder
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -42,8 +43,10 @@ class BackupJob(
 
     fun run(lastFingerprint: String?, force: Boolean): BackupResult = try {
         removeLeftovers()
-        val fingerprint = JournalFingerprint.of(journal)
         val before = summary()
+        // Noch kein einziger Eintrag (z. B. direkt nach der Einführung): keine fast leere ZIP-Datei anlegen.
+        if (!JournalFolder.hasEntries(journal)) return BackupResult.Unchanged(before)
+        val fingerprint = JournalFingerprint.of(journal)
         val at = now().withSecond(0).withNano(0)
         val name = BackupNames.name(at)
         when {

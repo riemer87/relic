@@ -178,6 +178,10 @@
     <string name="intro_lock_text">Beim Öffnen fragt Relic nach deinem Fingerabdruck oder der Displaysperre deines Handys. So bleibt dein Tagebuch privat, auch wenn dein Handy kurz in anderen Händen ist.</string>
     <string name="intro_lock_note">Die Sperre schützt die App. Deine Dateien im Ordner bleiben normale Dateien.</string>
     <string name="intro_lock_yes">Ja, App sperren</string>
+    <string name="intro_backup_title">Soll Relic dein Tagebuch sichern?</string>
+    <string name="intro_backup_text">Einmal pro Woche legt Relic eine Sicherung als ZIP-Datei in einen Ordner deiner Wahl – am besten einen, der auch außerhalb des Handys gesichert wird, z. B. in der Cloud.</string>
+    <string name="intro_backup_note">Nicht dein Tagebuch-Ordner, sondern ein anderer. Relic hebt nur die letzten Sicherungen auf und fasst andere Dateien nie an.</string>
+    <string name="intro_backup_yes">Ja, Ordner wählen</string>
     <string name="folder_title">Wo soll dein Tagebuch liegen?</string>
     <string name="folder_text">Relic speichert jeden Eintrag als ganz normale Datei auf deinem Handy. So kannst du deine Einträge immer öffnen, auch ohne diese App.</string>
     <string name="folder_recommended">Empfohlenen Ordner verwenden</string>

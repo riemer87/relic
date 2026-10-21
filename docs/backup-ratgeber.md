@@ -44,6 +44,7 @@ Jahr und Monat. Eine Sicherung ist nichts anderes als eine Kopie dieses Ordners,
 ## Weg 1: Automatische Sicherung – die Empfehlung
 
 *Einstellungen › Automatische Sicherung* einschalten und einmal einen **Sicherungsordner** wählen.
+Relic bietet das auch gleich beim ersten Start an.
 Ab dann legt Relic **jede Woche** eine Sicherung als ZIP-Datei dort ab – aber nur, wenn sich seit der
 letzten etwas geändert hat. Mit „Jetzt sichern“ geht es auch sofort.
 

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import de.riemer87.relic.backup.BackupSetup
 import de.riemer87.relic.export.ExportService
 import de.riemer87.relic.export.InterruptedExport
 import de.riemer87.relic.journal.TreeJournalStore
@@ -153,6 +154,7 @@ class MainActivity : FragmentActivity() {
                 lockAvailable = remember { canUseAppLock(this) },
                 authenticator = authenticator,
                 onLockEnabled = { appLock.setEnabled(true) },
+                chooseBackupFolder = { folder -> BackupSetup.chooseFolder(this, folder, journalUri) },
                 onFinished = { introRunning = false },
             )
             return
