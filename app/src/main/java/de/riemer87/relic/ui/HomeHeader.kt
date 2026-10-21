@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,7 +41,8 @@ import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
 
 private val INDICATOR_WIDTH = 28.dp
-private val LOGO_SIZE = 34.dp
+private val LOGO_SIZE = 50.dp
+private val TAB_HEIGHT = 56.dp
 
 /** Die zwei Hauptteile der App, als Reiter unter dem Schriftzug. */
 enum class HomeTab { WEEK, ARCHIVE }
@@ -62,17 +61,17 @@ fun HomeHeader(
     val colors = Relic.colors
     Column {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp, top = 22.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Rundes Logo vor dem Schriftzug; nur Schmuck, der Name steht ja daneben. Der feine Rand
-            // macht den Kreis auch auf hellem Papier sichtbar (Logo und Seite haben dieselbe Farbe).
+            // Rundes Logo vor dem Schriftzug; nur Schmuck, der Name steht ja daneben. Der weiße Kreis
+            // hebt sich ohne Rand vom Papier ab.
             Image(
                 painterResource(R.drawable.relic_logo),
                 contentDescription = null,
-                modifier = Modifier.size(LOGO_SIZE).border(1.dp, colors.rule, CircleShape),
+                modifier = Modifier.size(LOGO_SIZE),
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(12.dp))
             Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium, color = colors.ink)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = onSearch) {
@@ -108,7 +107,7 @@ private fun HomeTabs(selected: HomeTab, onSelect: (HomeTab) -> Unit) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = TAB_HEIGHT)
                         // Ohne graue Drück-Fläche: Strich und Farbe zeigen den Wechsel schon (flacher Papierlook).
                         .selectable(selected = active, interactionSource = null, indication = null, role = Role.Tab) {
                             if (!active) onSelect(tab)

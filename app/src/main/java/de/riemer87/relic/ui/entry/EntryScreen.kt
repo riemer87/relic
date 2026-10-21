@@ -58,6 +58,7 @@ import de.riemer87.relic.ui.currentLocale
 import de.riemer87.relic.ui.longDate
 import de.riemer87.relic.ui.photos.PhotoImage
 import de.riemer87.relic.ui.photos.PhotoViewer
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
@@ -146,7 +147,7 @@ internal fun EntryContent(
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .background(colors.sheet, RoundedCornerShape(10.dp))
+                .background(colors.sheet, SheetShape)
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

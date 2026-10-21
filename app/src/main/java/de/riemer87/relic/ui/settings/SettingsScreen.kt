@@ -74,6 +74,7 @@ import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.lock.canUseAppLock
 import de.riemer87.relic.storage.FolderLabel
 import de.riemer87.relic.ui.currentLocale
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.AccentColor
 import de.riemer87.relic.ui.theme.Appearance
 import de.riemer87.relic.ui.theme.KickerStyle
@@ -480,7 +481,7 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .background(colors.sheet)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),

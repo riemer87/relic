@@ -57,6 +57,7 @@ import de.riemer87.relic.ui.DayPreviewContent
 import de.riemer87.relic.ui.DaySheet
 import de.riemer87.relic.ui.currentLocale
 import de.riemer87.relic.ui.dashedOutline
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
@@ -113,7 +114,7 @@ internal fun ArchiveContent(
             modifier = Modifier
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp)
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
+                .clip(SheetShape)
                 .background(colors.sheet)
                 .padding(start = 14.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -159,7 +160,7 @@ internal fun ArchiveContent(
 
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -226,7 +227,7 @@ private fun MonthPicker(
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, top = 8.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .background(colors.sheet)
             .drawBehind {
                 drawRoundRect(colors.ink, cornerRadius = CornerRadius(10.dp.toPx()), style = Stroke(1.5.dp.toPx()))
@@ -308,7 +309,7 @@ private fun AddDaySheet(month: YearMonth, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .dashedOutline(colors.rule)
             .clickable(onClick = onClick)
             .padding(14.dp),

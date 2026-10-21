@@ -15,8 +15,8 @@ Website: https://relicjournalapp.com
 | `relic-icon-1024.png` | Medien, Präsentationen |
 | `relic-icon-round-1024.png` | Rund, z. B. Profilbilder |
 
-Das Symbol: großes, angeschnittenes „R“ mit dem Punkt aus dem Zeitstrahl,
-Tinte (`#24221E`) auf Papier (`#EFE9DF`). Die Quelle in der App ist
+Das Symbol: großes, angeschnittenes „R“ mit gefülltem Punkt,
+Tinte (`#24221E`) auf Weiß (`#FFFFFF`). Die Quelle in der App ist
 `app/src/main/res/drawable/ic_launcher_foreground.xml` (gleicher Pfad wie in den SVG-Dateien).
 
 Die Buchstabenform stammt aus der Schrift Fraunces (SIL Open Font License 1.1, siehe

@@ -30,13 +30,15 @@ import androidx.compose.ui.unit.sp
 import de.riemer87.relic.journal.MAX_PHOTOS
 import de.riemer87.relic.journal.StoredPhoto
 import de.riemer87.relic.ui.photos.PhotoImage
+import de.riemer87.relic.ui.theme.SheetRadius
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.FrauncesDisplay
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
 import java.time.LocalDate
 
 /** Gestrichelter Rand, wie bei leeren Tagen. */
-fun Modifier.dashedOutline(color: Color, radius: Dp = 10.dp): Modifier = drawBehind {
+fun Modifier.dashedOutline(color: Color, radius: Dp = SheetRadius): Modifier = drawBehind {
     val stroke = 1.5.dp.toPx()
     drawRoundRect(
         color = color,
@@ -66,7 +68,7 @@ fun DaySheet(
     val locale = currentLocale()
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .then(if (filled) Modifier.background(colors.sheet) else Modifier.dashedOutline(colors.rule))
             .clickable(onClick = onClick)
             .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp),

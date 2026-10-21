@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -47,6 +46,7 @@ import de.riemer87.relic.ui.intro.IntroProgress
 import de.riemer87.relic.ui.intro.IntroText
 import de.riemer87.relic.ui.intro.IntroTitle
 import de.riemer87.relic.ui.intro.StepDots
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
 
@@ -138,7 +138,7 @@ private fun FolderSetupContent(
                 color = colors.ink,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.sheet, RoundedCornerShape(10.dp))
+                    .background(colors.sheet, SheetShape)
                     .padding(14.dp),
             )
         }
@@ -219,7 +219,7 @@ private enum class OptionStyle { MAIN, SHEET, DASHED }
 @Composable
 private fun FolderOptionSheet(title: String, detail: String?, style: OptionStyle, enabled: Boolean, onClick: () -> Unit) {
     val colors = Relic.colors
-    val shape = RoundedCornerShape(10.dp)
+    val shape = SheetShape
     Column(
         modifier = Modifier
             .fillMaxWidth()

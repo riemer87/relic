@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -59,6 +58,7 @@ import de.riemer87.relic.ui.DateText
 import de.riemer87.relic.ui.DayPreviewContent
 import de.riemer87.relic.ui.DaySheet
 import de.riemer87.relic.ui.currentLocale
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.KickerStyle
 import de.riemer87.relic.ui.theme.Relic
 import java.time.LocalDate
@@ -118,7 +118,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit, focusNow
         modifier = Modifier
             .padding(start = 16.dp, end = 16.dp, top = 12.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .background(colors.sheet)
             .padding(start = 14.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,

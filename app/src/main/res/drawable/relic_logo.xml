@@ -2,7 +2,7 @@
 <!--
   Rundes Relic-Logo für die Kopfzeile: dasselbe „R“ mit Punkt wie das App-Symbol
   (ic_launcher_foreground.xml), auf den sichtbaren Kreis zugeschnitten. Gleich wie
-  branding/relic-icon-round.svg. Bleibt immer Tinte auf Papier, auch im Dunkelmodus.
+  branding/relic-icon-round.svg. Bleibt immer Tinte auf Weiß, auch im Dunkelmodus.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="72dp"
@@ -12,7 +12,7 @@
     <group>
         <clip-path android:pathData="M0,36a36,36 0,1 0,72 0a36,36 0,1 0,-72 0z" />
         <path
-            android:fillColor="#FFEFE9DF"
+            android:fillColor="#FFFFFFFF"
             android:pathData="M0,0h72v72h-72z" />
         <group
             android:translateX="-18"

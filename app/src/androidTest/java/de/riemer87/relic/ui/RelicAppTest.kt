@@ -108,11 +108,26 @@ class RelicAppTest {
         start(FakeJournalStore(mapOf(LocalDate.of(2026, 10, 14) to "Spaziergang am Fluss")))
 
         waitForText(str(R.string.timeline_today).uppercase())
-        rule.onNode(hasText(str(R.string.timeline_yesterday).uppercase())).assertExists()
+        rule.onNode(hasText(str(R.string.entry_text_placeholder))).assertExists()
         waitForText("Spaziergang am Fluss")
-        rule.onAllNodes(hasText(str(R.string.timeline_missing))).fetchSemanticsNodes().let {
-            assertTrue("Leere Tage zeigen „nachtragen“", it.isNotEmpty())
+        // Gestern (15.) ist leer: schmale Zeile statt Blatt, mit „Nachtragen“.
+        rule.onNode(hasText(rule.activity.getString(R.string.timeline_missing, str(R.string.timeline_yesterday)))).assertExists()
+        rule.onAllNodes(hasText(str(R.string.timeline_add))).fetchSemanticsNodes().let {
+            assertEquals("Heute + 6 Tage, einer davon mit Eintrag: 5 leere Tage", 5, it.size)
         }
+    }
+
+    /** Ein leerer vergangener Tag öffnet sich über seine Zeile direkt zum Nachtragen. */
+    @Test
+    fun emptyDayRowOpensTheDayForWriting() {
+        start(FakeJournalStore())
+
+        val row = rule.activity.getString(R.string.timeline_missing, str(R.string.timeline_yesterday))
+        waitForText(row)
+        rule.onNode(hasText(row)).performClick()
+        rule.waitForIdle()
+        rule.onNode(hasText(str(R.string.entry_title_past))).assertExists()
+        rule.onNode(textField).assertExists()
     }
 
     @Test
@@ -246,15 +261,6 @@ class RelicAppTest {
 
         waitForText(str(R.string.entry_saved))
         assertEquals("Gestern war sehr schön", store.textOf(yesterday))
-    }
-
-    @Test
-    fun emptyPastDayOpensForWriting() {
-        start(FakeJournalStore())
-
-        openDay(str(R.string.timeline_yesterday))
-        waitForText(str(R.string.entry_title_past))
-        rule.onNode(textField).assertExists()
     }
 
     @Test

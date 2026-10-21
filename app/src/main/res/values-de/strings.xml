@@ -18,7 +18,9 @@
     </plurals>
     <string name="timeline_today">Heute</string>
     <string name="timeline_yesterday">Gestern</string>
-    <string name="timeline_missing">Nichts aufgeschrieben – nachtragen →</string>
+    <string name="timeline_missing">%1$s · nichts aufgeschrieben</string>
+    <string name="timeline_add">Nachtragen</string>
+    <string name="today_date_pattern">EEEE, d. MMMM</string>
     <string name="archive_title">Archiv</string>
     <string name="archive_all_older">Alle älteren Einträge →</string>
     <string name="archive_empty">Keine Einträge in diesem Monat</string>

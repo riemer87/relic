@@ -52,6 +52,7 @@ import de.riemer87.relic.lock.Authenticator
 import de.riemer87.relic.reminder.ReminderConfig
 import de.riemer87.relic.ui.settings.TimeDialog
 import de.riemer87.relic.ui.settings.formatTime
+import de.riemer87.relic.ui.theme.SheetShape
 import de.riemer87.relic.ui.theme.FrauncesDisplay
 import de.riemer87.relic.ui.theme.Relic
 import de.riemer87.relic.ui.theme.RelicTheme
@@ -146,7 +147,7 @@ private fun FileExample() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
+            .clip(SheetShape)
             .background(colors.sheet)
             .padding(horizontal = 16.dp, vertical = 14.dp)
             .semantics(mergeDescendants = true) { contentDescription = description },
@@ -189,7 +190,7 @@ internal fun ReminderStep(progress: IntroProgress, onAccept: (LocalTime) -> Unit
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
+                .clip(SheetShape)
                 .background(colors.sheet)
                 .clickable(role = Role.Button) { timeDialogOpen = true }
                 .heightIn(min = 56.dp)
@@ -242,7 +243,7 @@ internal fun LockStep(progress: IntroProgress, authenticator: Authenticator, onE
                 color = colors.ink,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.sheet, RoundedCornerShape(10.dp))
+                    .background(colors.sheet, SheetShape)
                     .padding(14.dp),
             )
         }

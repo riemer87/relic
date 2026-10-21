@@ -1,7 +1,7 @@
 # Relic – Design
 
-**Tinte auf Papier.** Ruhig, warm, schlicht. Flach wie ein Kalenderblatt, eine Linie mit Punkten
-wie im Schulheft, Übersichten als lose Blätter.
+**Tinte auf Papier.** Ruhig, klar, schlicht. Ein fast weißer Grund, darauf weiße, flache Blätter;
+Grautöne mit einem Hauch Wärme statt Beige. Bewusst eigenständig (kein Zeitstrahl, keine cremige Fläche).
 
 Diese Datei ist die **einzige verbindliche Quelle** für das Aussehen von Relic – in der App und auf
 der Website (https://relicjournalapp.com). Sie wird bei jeder Design-Änderung mit angepasst.
@@ -22,24 +22,24 @@ Dunkelmodus sind in der App wählbar (Einstellungen › Darstellung).
 
 | Name | Wofür | Hell | Dunkel | CSS-Variable |
 |---|---|---|---|---|
-| Papier | Hintergrund der Seiten | `#EFE9DF` | `#1D1C1A` | `--paper` |
-| Blatt | Karten/Blätter, etwas heller als Papier | `#F8F4EC` | `#272522` | `--sheet` |
-| Tinte | Haupttext, Symbole | `#24221E` | `#ECE6DB` | `--ink` |
-| Tinte weich | Nebentext, Erklärungen | `#5F5A51` | `#B5AEA2` | `--ink-soft` |
-| Tinte blass | Platzhalter, Kleingedrucktes, Wochentag-Kürzel | `#9B9488` | `#7F796F` | `--ink-faint` |
-| Linie | Zeitstrahl-Linie, Ränder, gestrichelte Blätter | `#C9C0B2` | `#47433D` | `--rule` |
-| Akzent | Punkt für heute, Zeile „Heute“, Speichern-Knopf, Schalter | = Tinte | = Tinte | `--accent` |
-| Schrift auf Akzent | Text auf dem Speichern-Knopf | `#F8F4EC` | `#1D1C1A` | `--on-accent` |
+| Papier | Hintergrund der Seiten (fast neutrales Weiß) | `#F3F3F1` | `#1A1A19` | `--paper` |
+| Blatt | Karten/Blätter, heller als Papier | `#FFFFFF` | `#252524` | `--sheet` |
+| Tinte | Haupttext, Symbole | `#22211F` | `#ECEAE6` | `--ink` |
+| Tinte weich | Nebentext, Erklärungen | `#5C5955` | `#B3B0AA` | `--ink-soft` |
+| Tinte blass | Platzhalter, Kleingedrucktes, Wochentag-Kürzel | `#8C8882` | `#7C7975` | `--ink-faint` |
+| Linie | feine Linien, Ränder, gestrichelte Blätter | `#DAD8D3` | `#42413E` | `--rule` |
+| Akzent | Zeile „Heute“, Speichern-Knopf, Schalter | = Tinte | = Tinte | `--accent` |
+| Schrift auf Akzent | Text auf dem Speichern-Knopf | `#FFFFFF` | `#1A1A19` | `--on-accent` |
 | Erfolg | nur Erfolgsmeldungen („Export gespeichert“, Haken) | `#3A6B45` | `#8FC29A` | `--success` |
 
 ### Akzentfarben
 
-Standard ist **Tinte** (kein Farbakzent). Der Akzent färbt **nur** den Punkt für heute, die
-Zeile „Heute“ (und die Tageszahl von heute), den Speichern-Knopf und eingeschaltete Schalter.
+Standard ist **Tinte** (kein Farbakzent). Der Akzent färbt **nur** die Zeile „HEUTE“ auf dem
+Blatt für heute, den Speichern-Knopf und eingeschaltete Schalter.
 
 | Name | Hell | Dunkel |
 |---|---|---|
-| Tinte (Standard) | `#24221E` | `#ECE6DB` |
+| Tinte (Standard) | `#22211F` | `#ECEAE6` |
 | Salbei | `#4E6A4B` | `#9FBB98` |
 | Pflaume | `#7D4F6D` | `#CF9DBD` |
 | Ocker | `#8A6118` | `#DCAE5A` |
@@ -83,11 +83,11 @@ DM Sans: Stärken 400 und 500, kursiv 400.
 
 | Stil | Schrift | Größe / Zeilenhöhe | Stärke | Verwendung |
 |---|---|---|---|---|
-| Titel groß | Fraunces Display | 31 / 34 | 400 | Überschrift der Eintragsseite, Einführung |
+| Titel groß | Fraunces Display | 31 / 34 | 400 | Überschrift der Eintragsseite, Datum auf dem Blatt für heute, Einführung |
 | Schriftzug/Seitentitel | Fraunces Text | 29 | 600 | „Relic“, „Archiv“, „Einstellungen“ |
 | Tageszahl | Fraunces Display | 34 / 36 | 400 | große Zahl auf Tagesblättern |
 | Überschrift klein | Fraunces Display | 26 / 32 | 400 | Monatskopf im Archiv |
-| Titel mittel | Fraunces Text | 19 / 24 | 400 | Archiv-Blatt im Zeitstrahl, Monatsauswahl |
+| Titel mittel | Fraunces Text | 19 / 24 | 400 | Archiv-Blatt auf „Diese Woche“, Monatsauswahl |
 | Text groß | DM Sans | 16 / 25 | 400 | Eintragstext, Haupttexte |
 | Text | DM Sans | 14,5 / 22 | 400 | Erklärungen, Vorschauen |
 | Text klein | DM Sans | 12,5 / 18 | 400 | Fußnoten, Kleingedrucktes |
@@ -106,7 +106,7 @@ und Blätter gliedern die Seite.
 
 | Wo | Wert |
 |---|---|
-| Seitenrand links/rechts | 16 (Zeitstrahl-Kopf 20 links; Einführung und Ordnerwahl 24) |
+| Seitenrand links/rechts | 16 (Kopfzeile 18 links; Einführung und Ordnerwahl 24) |
 | Innenabstand Tagesblatt | 14 seitlich, 12 oben, 14 unten |
 | Innenabstand Eintragsseite (Blatt) | 18 |
 | Innenabstand Einstellungs-Abschnitt | 16 |
@@ -118,7 +118,7 @@ und Blätter gliedern die Seite.
 
 | Element | Radius |
 |---|---|
-| Blätter, Karten, Einstellungs-Abschnitte, Hinweisflächen | **10** |
+| Blätter, Karten, Einstellungs-Abschnitte, Hinweisflächen | **14** (`SheetShape` in `ui/theme/Shape.kt`) |
 | Knöpfe (Speichern, Umrandet), Auswahlfelder, Fotos | **8** (kleine Vorschaufotos 6) |
 | Große Knöpfe der Einführung | 10 |
 | Tagesauswahl-Dialog | 20 |
@@ -126,9 +126,8 @@ und Blätter gliedern die Seite.
 
 ### Linien
 
-- Strichstärke **1,5** für Ränder, Zeitstrahl-Linie und Punkte (Auswahlfelder 1).
-- **Gestrichelt** (6 Strich / 4 Lücke) für leere Tage und „nachtragen“-Blätter;
-  die Zeitstrahl-Linie endet fein gestrichelt (3 / 3) zum Archiv-Blatt.
+- Strichstärke **1,5** für Ränder und Symbole (Auswahlfelder und Linie unter Textfeldern 1).
+- **Gestrichelt** (6 Strich / 4 Lücke) für „nachtragen“-Blätter im Archiv und die dritte Ordner-Option.
 - Textfeld: nur eine feine Linie darunter (Linie-Farbe), kein Kasten.
 
 ---
@@ -136,12 +135,12 @@ und Blätter gliedern die Seite.
 ## 4. Bausteine
 
 ### Kopfzeile
-Kein farbiger Balken. Links das **runde Logo** (34 groß, feiner Rand 1 in Linie-Farbe, damit der
-Kreis auch auf hellem Papier sichtbar ist; bleibt immer Tinte auf Papier), mit Abstand 10 daneben
-der Schriftzug „Relic“ (Fraunces), rechts das Regler-Symbol für die
+Kein farbiger Balken, viel Luft (22 über, 10 unter der Logo-Zeile). Links das **runde Logo**
+(50 groß, weißer Kreis **ohne Rand**; bleibt immer Tinte auf Weiß, auch im Dunkelmodus), mit Abstand 12
+daneben der Schriftzug „Relic“ (Fraunces), rechts das Regler-Symbol für die
 Einstellungen, davor die Lupe für die Suche (in beiden Reitern).
-Darunter zwei **Reiter** „Diese Woche“ · „Archiv“, je über die halbe Breite (Seitenrand 16, mind.
-48 hoch), **ohne Trennstrich**: DM Sans 15, Stärke 500; der aktive in Tinte mit einem **kurzen
+Darunter zwei **Reiter** „Diese Woche“ · „Archiv“, je über die halbe Breite (Seitenrand 16, **56 hoch**
+für große Finger), **ohne Trennstrich**: DM Sans 15, Stärke 500; der aktive in Tinte mit einem **kurzen
 Strich** darunter (28 × 2, Tinte, mittig, 4 über der Unterkante), der andere in Tinte blass.
 Beim Wechsel bleiben Kopfzeile und Reiter stehen; nur der Inhalt blendet in **150 ms** über, der
 Strich gleitet in derselben Zeit zum anderen Reiter, die Schriftfarben wechseln mit. Keine graue
@@ -150,21 +149,26 @@ Unterseiten (Eintrag, Einstellungen, Suche): Pfeil zurück oben links, darunter 
 **Keine untere Navigationsleiste.**
 
 ### Symbole
-Feine Linien in **1,5er-Stärke** mit runden Enden (wie die Zeitstrahl-Linie), 24er Raster, in Tinte.
+Feine Linien in **1,5er-Stärke** mit runden Enden, 24er Raster, in Tinte.
 Einstellungen = **Regler** (drei Linien mit Kreisen), Suche = Lupe. Keine gefüllten, schweren Symbole.
 
-### Zeitstrahl
-Links eine senkrechte Linie (Linie-Farbe) mit einem **Punkt pro Tag** (12 groß):
-heute gefüllt im Akzent, Tage mit Eintrag als Ring in Tinte weich, leere Tage als Ring in
-Linie-Farbe. Rechts daneben pro Tag ein **Tagesblatt**. Unten endet die Linie gestrichelt in
-einem Blatt „Archiv · Alle älteren Einträge →“.
+### Diese Woche (Startseite)
+Kein Zeitstrahl. Abstand 20 unter den Reitern, 10 zwischen den Einträgen.
+- **Blatt für heute** (oben, Blatt-Farbe, Innenabstand 18): Kicker „HEUTE“ im Akzent, darunter das Datum
+  groß (Titel groß, „Mittwoch, 21. Oktober“), darunter „Was war heute?“ (Text groß, Tinte blass) auf einer
+  feinen Linie (1, Linie-Farbe). Kein Knopf: das ganze Blatt ist antippbar. Hat heute schon einen Eintrag,
+  stehen dort bis zu 3 Zeilen Text und die Fotos (56).
+- **Tage mit Eintrag:** Tagesblatt (siehe unten), Kicker „GESTERN“ bzw. Wochentag in Tinte weich.
+- **Leere Tage:** keine Fläche, nur eine schmale Zeile (mind. 48 hoch): Tageszahl klein (Fraunces 20,
+  Tinte blass), „Sonntag · nichts aufgeschrieben“ (Tinte weich), rechts „Nachtragen“ (500, Tinte).
+- Am Ende ein Blatt „Archiv · Alle älteren Einträge →“.
 
 ### Tagesblatt (Karte)
 Fläche in Blatt-Farbe, Radius 10, kein Rand, kein Schatten. Links die große **Tageszahl**
 (Fraunces Display 34, heute im Akzent) mit Wochentag-Kürzel darunter (Kicker, Tinte blass),
 rechts eine Kicker-Zeile („HEUTE“, „GESTERN“ oder Wochentag) und die Textvorschau
-(Zeitstrahl 2 Zeilen, Archiv 4 Zeilen), darunter kleine Fotos.
-**Leerer Tag:** keine Fläche, gestrichelter Rand, Text kursiv „Nichts aufgeschrieben – nachtragen →“.
+(„Diese Woche“ 2 Zeilen, Archiv 4 Zeilen), darunter kleine Fotos.
+(Leere Tage gibt es nur auf „Diese Woche“, dort als schmale Zeile, siehe oben.)
 
 ### Eintragsseite
 Ein großes Blatt auf Papier: kleine Datumszeile (Kicker), große Fraunces-Überschrift
@@ -212,9 +216,9 @@ Erfolg in den Einstellungen: grüner Haken + Text in Erfolg-Farbe.
 
 ## 5. Logo und App-Symbol
 
-Das Symbol: ein großes, angeschnittenes **„R“ aus Fraunces** (144pt SemiBold) mit dem gefüllten
-**Punkt aus dem Zeitstrahl** links oben – Tinte `#24221E` auf Papier `#EFE9DF`.
-Das Logo bleibt immer hell (Tinte auf Papier), auch im Dunkelmodus.
+Das Symbol: ein großes, angeschnittenes **„R“ aus Fraunces** (144pt SemiBold) mit einem gefüllten
+**Punkt** links oben – Tinte `#24221E` auf Weiß `#FFFFFF`.
+Das Logo bleibt immer hell (Tinte auf Weiß), auch im Dunkelmodus.
 
 | Datei (in `branding/`) | Wann verwenden |
 |---|---|
@@ -244,17 +248,17 @@ flachen Papier-Stil. Vorschlag für die Grundlage:
 
 ```css
 :root {
-  --paper: #EFE9DF; --sheet: #F8F4EC; --ink: #24221E; --ink-soft: #5F5A51;
-  --ink-faint: #9B9488; --rule: #C9C0B2; --accent: var(--ink); --on-accent: #F8F4EC;
+  --paper: #F3F3F1; --sheet: #FFFFFF; --ink: #22211F; --ink-soft: #5C5955;
+  --ink-faint: #8C8882; --rule: #DAD8D3; --accent: var(--ink); --on-accent: #FFFFFF;
   --success: #3A6B45;
   --serif: "Fraunces", Georgia, serif;   /* opsz 144, SOFT 100 für Große Titel */
   --sans: "DM Sans", system-ui, sans-serif;
-  --radius-sheet: 10px; --radius-button: 8px;
+  --radius-sheet: 14px; --radius-button: 8px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #1D1C1A; --sheet: #272522; --ink: #ECE6DB; --ink-soft: #B5AEA2;
-    --ink-faint: #7F796F; --rule: #47433D; --on-accent: #1D1C1A; --success: #8FC29A;
+    --paper: #1A1A19; --sheet: #252524; --ink: #ECEAE6; --ink-soft: #B3B0AA;
+    --ink-faint: #7C7975; --rule: #42413E; --on-accent: #1A1A19; --success: #8FC29A;
   }
 }
 ```

@@ -23,7 +23,9 @@
     <string name="photo_position" translatable="false">%1$d / %2$d</string>
     <string name="timeline_today">Today</string>
     <string name="timeline_yesterday">Yesterday</string>
-    <string name="timeline_missing">Nothing written down – add it now →</string>
+    <string name="timeline_missing">%1$s · nothing written</string>
+    <string name="timeline_add">Add</string>
+    <string name="today_date_pattern">EEEE, MMMM d</string>
     <string name="archive_title">Archive</string>
     <string name="archive_all_older">All older entries →</string>
     <string name="archive_empty">No entries this month</string>

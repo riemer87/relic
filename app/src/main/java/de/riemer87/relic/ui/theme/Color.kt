@@ -5,7 +5,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 /**
- * Die benannten Farben von Relic („Tinte auf Papier“, siehe design/papierlook.html).
+ * Die benannten Farben von Relic („Tinte auf Papier“, Werte siehe branding/DESIGN.md).
  * Alle Bildschirme nehmen ihre Farben nur von hier. So lassen sich Dunkelmodus und
  * Akzentfarben (Meilenstein 12) später ergänzen, ohne Bildschirme umzubauen.
  */
@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 data class RelicColors(
     /** Hintergrund der Seiten */
     val paper: Color,
-    /** Blätter im Zeitstrahl und auf der Eintragsseite, etwas heller als das Papier */
+    /** Blätter (Tage, Eintragsseite, Abschnitte), heller als das Papier */
     val sheet: Color,
     /** Haupttext */
     val ink: Color,
@@ -21,7 +21,7 @@ data class RelicColors(
     val inkSoft: Color,
     /** Platzhalter, Hinweise, Kleingedrucktes */
     val inkFaint: Color,
-    /** Zeitstrahl-Linie, gestrichelte Ränder, Linie unter dem Textfeld */
+    /** Feine Linien, gestrichelte Ränder, Linie unter dem Textfeld */
     val rule: Color,
     /** Punkt für heute, Zeile „Heute“, Speichern-Knopf. Standard: wie Tinte. */
     val accent: Color,
@@ -32,27 +32,27 @@ data class RelicColors(
 )
 
 val PaperLight = RelicColors(
-    paper = Color(0xFFEFE9DF),
-    sheet = Color(0xFFF8F4EC),
-    ink = Color(0xFF24221E),
-    inkSoft = Color(0xFF5F5A51),
-    inkFaint = Color(0xFF9B9488),
-    rule = Color(0xFFC9C0B2),
-    accent = Color(0xFF24221E),
-    onAccent = Color(0xFFF8F4EC),
+    paper = Color(0xFFF3F3F1),
+    sheet = Color(0xFFFFFFFF),
+    ink = Color(0xFF22211F),
+    inkSoft = Color(0xFF5C5955),
+    inkFaint = Color(0xFF8C8882),
+    rule = Color(0xFFDAD8D3),
+    accent = Color(0xFF22211F),
+    onAccent = Color(0xFFFFFFFF),
     success = Color(0xFF3A6B45),
 )
 
-/** Dunkelmodus: Tinte auf Papier umgekehrt (Werte aus design/papierlook.html). */
+/** Dunkelmodus: Tinte auf Papier umgekehrt, neutral statt bräunlich. */
 val PaperDark = RelicColors(
-    paper = Color(0xFF1D1C1A),
-    sheet = Color(0xFF272522),
-    ink = Color(0xFFECE6DB),
-    inkSoft = Color(0xFFB5AEA2),
-    inkFaint = Color(0xFF7F796F),
-    rule = Color(0xFF47433D),
-    accent = Color(0xFFECE6DB),
-    onAccent = Color(0xFF1D1C1A),
+    paper = Color(0xFF1A1A19),
+    sheet = Color(0xFF252524),
+    ink = Color(0xFFECEAE6),
+    inkSoft = Color(0xFFB3B0AA),
+    inkFaint = Color(0xFF7C7975),
+    rule = Color(0xFF42413E),
+    accent = Color(0xFFECEAE6),
+    onAccent = Color(0xFF1A1A19),
     success = Color(0xFF8FC29A),
 )
 
