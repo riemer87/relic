@@ -4,6 +4,9 @@ import android.app.Application
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.lifecycle.AndroidViewModel
+import de.riemer87.relic.backup.BackupInfo
+import de.riemer87.relic.backup.BackupSettings
+import de.riemer87.relic.backup.BackupWorker
 import de.riemer87.relic.export.ExportRecord
 import de.riemer87.relic.export.ExportService
 import de.riemer87.relic.export.ExportState
@@ -18,13 +21,17 @@ import de.riemer87.relic.ui.theme.Appearance
 import de.riemer87.relic.ui.theme.AppearanceSettings
 import de.riemer87.relic.ui.theme.ThemeMode
 import androidx.lifecycle.viewModelScope
+import de.riemer87.relic.storage.describeFolder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import java.time.LocalTime
 
 /**
@@ -41,7 +48,10 @@ data class SettingsUiState(
     val version: String,
 )
 
-class SettingsViewModel(application: Application, journalUri: Uri?) : AndroidViewModel(application) {
+/** Ergebnis der Wahl eines Sicherungsordners. */
+enum class BackupFolderChoice { OK, INSIDE_JOURNAL, NO_ACCESS }
+
+class SettingsViewModel(application: Application, private val journalUri: Uri?) : AndroidViewModel(application) {
 
     private val reminderSettings = ReminderSettings(application)
     private val scheduler = ReminderScheduler(application)
@@ -90,6 +100,54 @@ class SettingsViewModel(application: Application, journalUri: Uri?) : AndroidVie
     fun setAccent(accent: AccentColor) = appearanceSettings.setAccent(accent)
 
     fun startExport(target: Uri) = ExportService.start(getApplication(), target)
+
+    private val backupSettings = BackupSettings.get(application)
+
+    /** Automatische Sicherung: Schalter, Ordner, letztes Ergebnis (aktualisiert sich auch aus dem Hintergrund). */
+    val backup: StateFlow<BackupInfo> = backupSettings.info
+
+    /** Anzeige des Sicherungsordners; bei Cloud-Ordnern fragt Relic den Anbieter nach dem Namen (im Hintergrund). */
+    val backupFolder: StateFlow<FolderLabel.Parts?> = backupSettings.info
+        .map { it.folder }
+        .distinctUntilChanged()
+        .map { folder -> folder?.let { withContext(Dispatchers.IO) { describeFolder(application, it) } } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** Eine Sicherung ist angestoßen, aber Android hat sie noch nicht gestartet. */
+    val backupWaiting: StateFlow<Boolean> = BackupWorker.waiting(application)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /** Ein- oder ausschalten. Beim Einschalten gleich eine erste Sicherung anstoßen. */
+    fun setBackupEnabled(enabled: Boolean) {
+        backupSettings.setEnabled(enabled)
+        BackupWorker.schedule(getApplication(), enabled)
+        if (enabled) BackupWorker.runNow(getApplication(), force = false)
+    }
+
+    /** Neuer Sicherungsordner aus der Ordnerauswahl; schaltet die Sicherung ein. */
+    fun chooseBackupFolder(folder: Uri): BackupFolderChoice {
+        if (journalUri != null && BackupSettings.isSameOrInside(folder, journalUri)) return BackupFolderChoice.INSIDE_JOURNAL
+        val resolver = getApplication<Application>().contentResolver
+        try {
+            resolver.takePersistableUriPermission(folder, BackupWorker.ACCESS_FLAGS)
+        } catch (e: SecurityException) {
+            return BackupFolderChoice.NO_ACCESS
+        }
+        val old = backupSettings.info.value.folder
+        backupSettings.setFolder(folder)
+        if (old != null && old != folder && old != journalUri) {
+            try {
+                resolver.releasePersistableUriPermission(old, BackupWorker.ACCESS_FLAGS)
+            } catch (e: SecurityException) {
+                // Gab es nicht (mehr).
+            }
+        }
+        setBackupEnabled(true)
+        return BackupFolderChoice.OK
+    }
+
+    /** „Jetzt sichern“: auch wenn sich nichts geändert hat. */
+    fun backUpNow() = BackupWorker.runNow(getApplication(), force = true)
 
     fun setReminderEnabled(enabled: Boolean) = update(_state.value.reminder.copy(enabled = enabled))
 

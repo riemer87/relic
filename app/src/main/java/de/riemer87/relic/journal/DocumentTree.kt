@@ -2,6 +2,10 @@ package de.riemer87.relic.journal
 
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
+
+/** Name, Größe (Bytes) und letzte Änderung (ms seit 1970, 0 = unbekannt) eines Eintrags im Ordner. */
+data class FileInfo(val name: String, val isDir: Boolean, val size: Long, val lastModified: Long)
 
 /**
  * Ein Ordner mit Unterordnern und Dateien, angesprochen über Pfade relativ zur Wurzel
@@ -14,6 +18,10 @@ interface DocumentTree {
     /** Namen aller Einträge im Ordner, oder `null`, wenn es den Ordner nicht gibt. */
     @Throws(IOException::class)
     fun list(dir: String): List<String>?
+
+    /** Wie [list], mit Größe und Änderungszeit – so lassen sich Änderungen erkennen, ohne Dateien zu lesen. */
+    @Throws(IOException::class)
+    fun listInfo(dir: String): List<FileInfo>?
 
     @Throws(IOException::class)
     fun exists(path: String): Boolean
@@ -33,6 +41,13 @@ interface DocumentTree {
     /** Öffnet eine Datei zum Lesen, oder `null`, wenn es sie nicht gibt. Aufrufer muss schließen. */
     @Throws(IOException::class)
     fun openRead(path: String): InputStream?
+
+    /**
+     * Öffnet eine Datei zum Schreiben (legt sie an oder leert sie). Für große Dateien, die nicht
+     * auf einmal in den Speicher passen. Aufrufer muss schließen.
+     */
+    @Throws(IOException::class)
+    fun openWrite(path: String): OutputStream
 
     /** Benennt eine Datei im selben Ordner um. Unter dem neuen Namen darf noch nichts liegen. */
     @Throws(IOException::class)

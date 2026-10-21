@@ -6,10 +6,12 @@ import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
 import de.riemer87.relic.journal.DocumentTree
+import de.riemer87.relic.journal.FileInfo
 import de.riemer87.relic.journal.splitPath
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.SyncFailedException
 
 /**
@@ -21,7 +23,7 @@ class SafDocumentTree(
     private val treeUri: Uri,
 ) : DocumentTree {
 
-    private class Doc(val id: String, val name: String, val isDir: Boolean)
+    private class Doc(val id: String, val name: String, val isDir: Boolean, val size: Long = 0, val lastModified: Long = 0)
 
     private val root: Doc by lazy { io { Doc(DocumentsContract.getTreeDocumentId(treeUri), "", isDir = true) } }
 
@@ -38,6 +40,11 @@ class SafDocumentTree(
         children(doc.id).map { it.name }
     }
 
+    override fun listInfo(dir: String): List<FileInfo>? = io {
+        val doc = find(dir)?.takeIf { it.isDir } ?: return@io null
+        children(doc.id).map { FileInfo(it.name, it.isDir, it.size, it.lastModified) }
+    }
+
     override fun exists(path: String): Boolean = io { find(path) != null }
 
     override fun readText(path: String): String? = io {
@@ -52,10 +59,7 @@ class SafDocumentTree(
     }
 
     override fun writeBytes(path: String, content: ByteArray) = io {
-        val (dirPath, name) = splitPath(path)
-        val parent = ensureDir(dirPath)
-        val existing = children(parent.id).firstOrNull { it.name == name }
-        val target = existing?.let(::uriOf) ?: create(parent, name, FILE_MIME_TYPE)
+        val target = createOrFind(path)
 
         // "wt" = schreiben und vorhandenen Inhalt vorher abschneiden.
         val descriptor = resolver.openFileDescriptor(target, "wt") ?: throw IOException("Konnte $path nicht öffnen")
@@ -68,6 +72,18 @@ class SafDocumentTree(
                 // Manche Anbieter (z. B. Cloud-Ordner) können das nicht; dann reicht flush.
             }
         }
+    }
+
+    override fun openWrite(path: String): OutputStream = io {
+        resolver.openOutputStream(createOrFind(path), "wt") ?: throw IOException("Konnte $path nicht öffnen")
+    }
+
+    /** Die Datei unter [path]; fehlt sie, wird sie samt Ordnern angelegt. */
+    private fun createOrFind(path: String): Uri {
+        val (dirPath, name) = splitPath(path)
+        val parent = ensureDir(dirPath)
+        val existing = children(parent.id).firstOrNull { it.name == name }
+        return existing?.let(::uriOf) ?: create(parent, name, FILE_MIME_TYPE)
     }
 
     override fun rename(path: String, newName: String) = io {
@@ -88,12 +104,24 @@ class SafDocumentTree(
 
     private fun children(parentId: String): List<Doc> {
         val uri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, parentId)
-        val projection = arrayOf(Document.COLUMN_DOCUMENT_ID, Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE)
+        val projection = arrayOf(
+            Document.COLUMN_DOCUMENT_ID, Document.COLUMN_DISPLAY_NAME, Document.COLUMN_MIME_TYPE,
+            Document.COLUMN_SIZE, Document.COLUMN_LAST_MODIFIED,
+        )
         val cursor = resolver.query(uri, projection, null, null, null) ?: throw IOException("Ordner nicht lesbar")
         return cursor.use {
             buildList {
                 while (it.moveToNext()) {
-                    add(Doc(id = it.getString(0), name = it.getString(1), isDir = it.getString(2) == Document.MIME_TYPE_DIR))
+                    add(
+                        Doc(
+                            id = it.getString(0),
+                            name = it.getString(1),
+                            isDir = it.getString(2) == Document.MIME_TYPE_DIR,
+                            // Nicht jeder Anbieter kennt Größe und Änderungszeit; dann 0.
+                            size = if (it.isNull(3)) 0 else it.getLong(3),
+                            lastModified = if (it.isNull(4)) 0 else it.getLong(4),
+                        ),
+                    )
                 }
             }
         }

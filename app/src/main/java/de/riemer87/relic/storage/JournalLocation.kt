@@ -7,13 +7,14 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import de.riemer87.relic.backup.BackupSettings
 import java.io.File
 
 /**
  * Merkt sich, welcher Ordner für das Tagebuch freigegeben wurde,
  * und prüft, ob die App noch darauf zugreifen darf.
  */
-class JournalLocation(context: Context) {
+class JournalLocation(private val context: Context) {
 
     private val resolver = context.contentResolver
     private val prefs = context.getSharedPreferences("journal_location", Context.MODE_PRIVATE)
@@ -33,6 +34,8 @@ class JournalLocation(context: Context) {
     fun takePermission(uri: Uri) = resolver.takePersistableUriPermission(uri, ACCESS_FLAGS)
 
     fun releasePermission(uri: Uri) {
+        // Derselbe Ordner kann auch Sicherungsordner sein – dessen Freigabe muss bleiben.
+        if (uri == BackupSettings.get(context).info.value.folder) return
         try {
             resolver.releasePersistableUriPermission(uri, ACCESS_FLAGS)
         } catch (e: SecurityException) {

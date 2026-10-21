@@ -29,6 +29,8 @@ data class RelicColors(
     val onAccent: Color,
     /** Erfolgsmeldungen, z. B. „Export gespeichert“ (gedecktes Grün, gut lesbar auf Papier und Blatt) */
     val success: Color,
+    /** Laufende Vorgänge, z. B. „Sichert gerade …“ (gedecktes Bernstein-Gelb, gut lesbar auf Papier und Blatt) */
+    val progress: Color,
 )
 
 val PaperLight = RelicColors(
@@ -41,6 +43,7 @@ val PaperLight = RelicColors(
     accent = Color(0xFF22211F),
     onAccent = Color(0xFFFFFFFF),
     success = Color(0xFF3A6B45),
+    progress = Color(0xFF8A5A00),
 )
 
 /** Dunkelmodus: Tinte auf Papier umgekehrt, neutral statt bräunlich. */
@@ -54,6 +57,7 @@ val PaperDark = RelicColors(
     accent = Color(0xFFECEAE6),
     onAccent = Color(0xFF1A1A19),
     success = Color(0xFF8FC29A),
+    progress = Color(0xFFE2B54A),
 )
 
 /**

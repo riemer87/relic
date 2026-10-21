@@ -4,6 +4,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 
 /** [DocumentTree] über einen normalen Ordner – nur für Tests auf dem PC. Verhält sich streng wie SAF. */
 class FileDocumentTree(private val root: File) : DocumentTree {
@@ -12,6 +13,10 @@ class FileDocumentTree(private val root: File) : DocumentTree {
 
     override fun list(dir: String): List<String>? =
         file(dir).takeIf { it.isDirectory }?.list()?.sorted()
+
+    override fun listInfo(dir: String): List<FileInfo>? =
+        file(dir).takeIf { it.isDirectory }?.listFiles()?.sortedBy { it.name }
+            ?.map { FileInfo(it.name, it.isDirectory, if (it.isFile) it.length() else 0, it.lastModified()) }
 
     override fun exists(path: String): Boolean = file(path).exists()
 
@@ -26,6 +31,13 @@ class FileDocumentTree(private val root: File) : DocumentTree {
     }
 
     override fun openRead(path: String): InputStream? = file(path).takeIf { it.isFile }?.inputStream()
+
+    override fun openWrite(path: String): OutputStream {
+        val target = file(path)
+        val dir = target.parentFile!!
+        if (!dir.isDirectory && !dir.mkdirs()) throw IOException("Konnte $dir nicht anlegen")
+        return target.outputStream()
+    }
 
     override fun rename(path: String, newName: String) {
         val source = file(path)

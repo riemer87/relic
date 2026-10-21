@@ -30,7 +30,8 @@ Dunkelmodus sind in der App wählbar (Einstellungen › Darstellung).
 | Linie | feine Linien, Ränder, gestrichelte Blätter | `#DAD8D3` | `#42413E` | `--rule` |
 | Akzent | Zeile „Heute“, Speichern-Knopf, Schalter | = Tinte | = Tinte | `--accent` |
 | Schrift auf Akzent | Text auf dem Speichern-Knopf | `#FFFFFF` | `#1A1A19` | `--on-accent` |
-| Erfolg | nur Erfolgsmeldungen („Export gespeichert“, Haken) | `#3A6B45` | `#8FC29A` | `--success` |
+| Erfolg | nur Erfolgsmeldungen („Export gespeichert“, „Letzte Sicherung“, Haken) | `#3A6B45` | `#8FC29A` | `--success` |
+| Läuft | nur laufende Vorgänge („Sichert gerade …“, Punkt davor); gedecktes Bernstein-Gelb | `#8A5A00` | `#E2B54A` | `--progress` |
 
 ### Akzentfarben
 
@@ -50,7 +51,7 @@ Salbei und Ocker sind in Hell etwas dunkler als in den ersten Entwürfen, damit 
 ### Lesbarkeit
 
 Ein automatischer Test (`ThemeColorsTest`) prüft für alle 8 Kombinationen (Hell/Dunkel × 4 Akzente)
-einen Kontrast von **mindestens 4,5 : 1** für Tinte, Tinte weich, Akzent und Erfolg auf Papier und
+einen Kontrast von **mindestens 4,5 : 1** für Tinte, Tinte weich, Akzent, Erfolg und Läuft auf Papier und
 Blatt sowie für die Schrift auf dem Akzent. „Tinte blass“ ist absichtlich zart (mindestens 2,3 : 1)
 und nur für Nebensächliches gedacht.
 
@@ -210,7 +211,8 @@ Linie-Farbe), große Fraunces-Überschrift, Text in Tinte weich, Knöpfe unten.
 
 ### Meldungen
 Kurze Meldungen („Eintrag gespeichert“) unten als dunkle Leiste (Fläche Tinte, Schrift Blatt).
-Erfolg in den Einstellungen: grüner Haken + Text in Erfolg-Farbe.
+Erfolg in den Einstellungen: grüner Haken + Text in Erfolg-Farbe (Export, letzte Sicherung).
+Laufender Vorgang (Sicherung startet/läuft): Punkt 8 + Text (500) in Läuft-Farbe.
 
 ---
 
@@ -250,7 +252,7 @@ flachen Papier-Stil. Vorschlag für die Grundlage:
 :root {
   --paper: #F3F3F1; --sheet: #FFFFFF; --ink: #22211F; --ink-soft: #5C5955;
   --ink-faint: #8C8882; --rule: #DAD8D3; --accent: var(--ink); --on-accent: #FFFFFF;
-  --success: #3A6B45;
+  --success: #3A6B45; --progress: #8A5A00;
   --serif: "Fraunces", Georgia, serif;   /* opsz 144, SOFT 100 für Große Titel */
   --sans: "DM Sans", system-ui, sans-serif;
   --radius-sheet: 14px; --radius-button: 8px;
@@ -258,7 +260,7 @@ flachen Papier-Stil. Vorschlag für die Grundlage:
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #1A1A19; --sheet: #252524; --ink: #ECEAE6; --ink-soft: #B3B0AA;
-    --ink-faint: #7C7975; --rule: #42413E; --on-accent: #1A1A19; --success: #8FC29A;
+    --ink-faint: #7C7975; --rule: #42413E; --on-accent: #1A1A19; --success: #8FC29A; --progress: #E2B54A;
   }
 }
 ```

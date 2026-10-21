@@ -44,7 +44,7 @@ class ThemeColorsTest {
 
     /**
      * Lesbarkeit in allen 8 Kombinationen: Text und Akzent („HEUTE“, Tageszahl) auf Papier und Blatt,
-     * Schrift auf dem Speichern-Knopf, die grüne Erfolgsmeldung. Mindestens 4,5 : 1 wie für normalen Text üblich.
+     * Schrift auf dem Speichern-Knopf, die grüne Erfolgsmeldung und das Bernstein für Laufendes. Mindestens 4,5 : 1 wie für normalen Text üblich.
      */
     @Test
     fun allCombinationsAreReadable() {
@@ -56,6 +56,7 @@ class ThemeColorsTest {
                 assertReadable("$label Tinte weich auf $name", c.inkSoft, background)
                 assertReadable("$label Akzent auf $name", c.accent, background)
                 assertReadable("$label Erfolg auf $name", c.success, background)
+                assertReadable("$label Läuft auf $name", c.progress, background)
             }
             assertReadable("$label Schrift auf Akzent", c.onAccent, c.accent)
         }

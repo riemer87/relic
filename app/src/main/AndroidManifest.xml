@@ -8,6 +8,12 @@
     <!-- „Alles exportieren“ läuft als Vordergrunddienst weiter, auch wenn man die App verlässt. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!--
+      Relic hat absichtlich KEINEN Internetzugriff (keine INTERNET-Berechtigung). WorkManager (automatische
+      Sicherung) bringt „Netzwerkstatus sehen“ mit; das braucht Relic nicht, weil die Sicherung nie auf Netz
+      wartet. PrivacyTest prüft beides.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <application
         android:allowBackup="true"
@@ -51,6 +57,11 @@
             android:name=".export.ExportService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <!-- „Jetzt sichern“ hat Vorrang; vor Android 12 läuft das als Vordergrunddienst von WorkManager. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
     </application>
 
 </manifest>

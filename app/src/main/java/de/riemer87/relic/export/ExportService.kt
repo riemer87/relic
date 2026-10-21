@@ -183,7 +183,7 @@ class ExportService : Service() {
 
     companion object {
         private const val TAG = "RelicExport"
-        private const val CHANNEL_ID = "export"
+        internal const val CHANNEL_ID = "export"
         private const val PROGRESS_ID = 31
         private const val RESULT_ID = 32
         private const val ACCESS_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION

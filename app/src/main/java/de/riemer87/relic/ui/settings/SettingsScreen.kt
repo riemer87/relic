@@ -68,6 +68,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.riemer87.relic.R
+import de.riemer87.relic.backup.BackupInfo
 import de.riemer87.relic.export.ExportService
 import de.riemer87.relic.export.ExportState
 import de.riemer87.relic.lock.Authenticator
@@ -102,6 +103,12 @@ fun SettingsScreen(
     val exportState by viewModel.export.collectAsStateWithLifecycle()
     val lastExport by viewModel.lastExport.collectAsStateWithLifecycle()
     val appearance by viewModel.appearance.collectAsStateWithLifecycle()
+    val backup by viewModel.backup.collectAsStateWithLifecycle()
+    var backupHintOpen by rememberSaveable { mutableStateOf(false) }
+    val backupFolder by viewModel.backupFolder.collectAsStateWithLifecycle()
+    val backupWaiting by viewModel.backupWaiting.collectAsStateWithLifecycle()
+    // Abgelehnter Ordner: als Dialog, damit man es nicht übersieht (eine kurze Meldung unten ging unter).
+    var rejectedFolder by rememberSaveable { mutableStateOf<BackupFolderChoice?>(null) }
     val context = LocalContext.current
     val deniedMessage = stringResource(R.string.settings_notifications_denied)
     val lockFailedMessage = stringResource(R.string.lock_enable_failed)
@@ -111,6 +118,13 @@ fun SettingsScreen(
     // „Speichern unter“ von Android: Ort und Namen der ZIP-Datei wählen.
     val chooseExportTarget = rememberLauncherForActivityResult(CreateZipInDownloads()) { uri ->
         uri?.let(viewModel::startExport)
+    }
+
+    // Ordnerauswahl von Android für den Sicherungsordner, beginnend in „Dokumente“.
+    val chooseBackupFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val choice = viewModel.chooseBackupFolder(uri)
+        if (choice != BackupFolderChoice.OK) rejectedFolder = choice
     }
 
     // Android 13+: Erlaubnis für Benachrichtigungen erst beim Einschalten erfragen.
@@ -152,7 +166,46 @@ fun SettingsScreen(
         onThemeModeChange = viewModel::setThemeMode,
         onAccentChange = viewModel::setAccent,
         onExport = { chooseExportTarget.launch("Relic-Export-${LocalDate.now()}.zip") },
+        backup = backup,
+        backupFolder = backupFolder,
+        backupWaiting = backupWaiting,
+        onBackupChange = { on ->
+            // Ohne Ordner erst einen wählen; eingeschaltet wird dann nach der Wahl.
+            if (on && backup.folder == null) backupHintOpen = true else viewModel.setBackupEnabled(on)
+        },
+        onChooseBackupFolder = { backupHintOpen = true },
+        onBackUpNow = viewModel::backUpNow,
     )
+
+    rejectedFolder?.let { choice ->
+        BackupFolderRejectedDialog(
+            choice = choice,
+            onChooseOther = {
+                rejectedFolder = null
+                chooseBackupFolder.launch(DOCUMENTS)
+            },
+            onDismiss = { rejectedFolder = null },
+        )
+    }
+
+    if (backupHintOpen) {
+        val colors = Relic.colors
+        AlertDialog(
+            onDismissRequest = { backupHintOpen = false },
+            title = { Text(stringResource(R.string.backup_folder_hint_title)) },
+            text = { Text(stringResource(R.string.backup_folder_hint), style = MaterialTheme.typography.bodyMedium) },
+            confirmButton = {
+                TextButton(onClick = {
+                    backupHintOpen = false
+                    chooseBackupFolder.launch(DOCUMENTS)
+                }) { Text(stringResource(R.string.backup_folder_continue), color = colors.ink) }
+            },
+            dismissButton = {
+                TextButton(onClick = { backupHintOpen = false }) { Text(stringResource(R.string.cancel), color = colors.ink) }
+            },
+            containerColor = colors.sheet,
+        )
+    }
 }
 
 @Composable
@@ -173,6 +226,12 @@ internal fun SettingsContent(
     onThemeModeChange: (ThemeMode) -> Unit = {},
     onAccentChange: (AccentColor) -> Unit = {},
     onExport: () -> Unit = {},
+    backup: BackupInfo = BackupInfo(),
+    backupFolder: FolderLabel.Parts? = null,
+    backupWaiting: Boolean = false,
+    onBackupChange: (Boolean) -> Unit = {},
+    onChooseBackupFolder: () -> Unit = {},
+    onBackUpNow: () -> Unit = {},
 ) {
     val colors = Relic.colors
     var timeDialogOpen by rememberSaveable { mutableStateOf(false) }
@@ -261,6 +320,15 @@ internal fun SettingsContent(
                 }
             }
 
+            BackupSection(
+                backup = backup,
+                folder = backupFolder,
+                waiting = backupWaiting,
+                onEnabledChange = onBackupChange,
+                onChooseFolder = onChooseBackupFolder,
+                onBackUpNow = onBackUpNow,
+            )
+
             Section(title = stringResource(R.string.settings_export)) {
                 Text(stringResource(R.string.settings_export_explain), style = MaterialTheme.typography.bodyMedium, color = colors.inkSoft)
                 OutlinedButton(onClick = onExport, enabled = !exportState.isRunning, shape = RoundedCornerShape(8.dp)) {
@@ -331,6 +399,9 @@ internal fun SettingsContent(
  * „Speichern unter“ für die ZIP-Datei, beginnend in „Downloads“. Sonst öffnet Android den zuletzt
  * benutzten Ort – oft den Tagebuch-Ordner selbst, und dort gehört der Export nicht hin.
  */
+/** Startpunkt der Ordnerauswahl für Sicherungen: „Dokumente“. */
+private val DOCUMENTS: Uri = DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", "primary:Documents")
+
 private class CreateZipInDownloads : ActivityResultContracts.CreateDocument("application/zip") {
     override fun createIntent(context: Context, input: String): Intent =
         super.createIntent(context, input).putExtra(DocumentsContract.EXTRA_INITIAL_URI, DOWNLOADS)
@@ -458,7 +529,7 @@ private fun exportedAt(at: Instant): String {
 
 /** Schalter in Relic-Farben. */
 @Composable
-private fun RelicSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+internal fun RelicSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     val colors = Relic.colors
     Switch(
         checked = checked,
@@ -476,7 +547,7 @@ private fun RelicSwitch(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
 private val LICENSE_FILES = listOf("Fraunces-OFL.txt", "DMSans-OFL.txt")
 
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
     val colors = Relic.colors
     Column(
         modifier = Modifier
@@ -492,7 +563,7 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
 }
 
 @Composable
-private fun folderText(folder: FolderLabel.Parts?): String {
+internal fun folderText(folder: FolderLabel.Parts?): String {
     if (folder == null) return stringResource(R.string.settings_folder_unknown)
     val start = when (folder.location) {
         FolderLabel.Location.INTERNAL -> stringResource(R.string.settings_folder_internal)
