@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.semantics.SemanticsActions
@@ -150,6 +151,22 @@ class RelicAppTest {
         rule.onNode(hasContentDescription(str(R.string.photo_close))).performClick()
         rule.waitForIdle()
         rule.onNode(hasText("2 / 2")).assertDoesNotExist()
+        rule.onNode(hasText(str(R.string.entry_title_past))).assertExists()
+    }
+
+    /** Galerie-Gesten: Nach unten wischen schließt die Vollbild-Ansicht. */
+    @Test
+    fun swipingPhotoDownClosesViewer() {
+        val yesterday = today.minusDays(1)
+        start(FakeJournalStore(mapOf(yesterday to "Ausflug"), initialPhotos = mapOf(yesterday to 2)))
+
+        openDay(str(R.string.timeline_yesterday))
+        rule.onNode(hasContentDescription(rule.activity.getString(R.string.photo_number, 1))).performClick()
+        waitForText("1 / 2")
+
+        rule.onAllNodes(hasContentDescription(rule.activity.getString(R.string.photo_number, 1)))
+            .onLast().performTouchInput { swipeDown(startY = centerY, endY = bottom, durationMillis = 200) }
+        rule.waitUntil(5_000) { rule.onAllNodes(hasText("1 / 2")).fetchSemanticsNodes().isEmpty() }
         rule.onNode(hasText(str(R.string.entry_title_past))).assertExists()
     }
 
