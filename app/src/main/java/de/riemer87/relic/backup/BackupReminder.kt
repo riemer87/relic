@@ -18,17 +18,19 @@ sealed interface BackupHint {
  * - Automatische Sicherung **an**: nur, wenn sie nicht klappt. Ihr Alter zählt nicht – ohne Änderungen
  *   entsteht absichtlich keine neue Sicherung.
  * - Automatische Sicherung **aus**: wenn die letzte Sicherung (Export oder frühere automatische) mindestens
- *   [OVERDUE_DAYS] Tage her ist oder es noch keine gibt – aber nur, wenn es überhaupt Einträge gibt.
+ *   [OVERDUE_DAYS] Tage her ist, oder wenn es noch keine gibt und der früheste Eintrag mindestens
+ *   [FIRST_HINT_AFTER_DAYS] Tage alt ist (wer neu anfängt, wird nicht gleich am ersten Tag gemahnt).
  */
 object BackupReminder {
 
     const val OVERDUE_DAYS = 30L
+    const val FIRST_HINT_AFTER_DAYS = 7L
 
     fun hint(
         autoBackupOn: Boolean,
         problem: BackupProblem?,
         lastSaved: LocalDate?,
-        hasEntries: Boolean,
+        firstEntry: LocalDate?,
         today: LocalDate,
     ): BackupHint? {
         if (autoBackupOn) {
@@ -36,8 +38,11 @@ object BackupReminder {
             val broken = problem != null && problem != BackupProblem.JOURNAL_MISSING
             return if (broken) BackupHint.NotWorking else null
         }
-        if (!hasEntries) return null
-        if (lastSaved == null) return BackupHint.Overdue(days = null)
+        if (firstEntry == null) return null // Noch nichts geschrieben: nichts zu sichern.
+        if (lastSaved == null) {
+            val journalAge = ChronoUnit.DAYS.between(firstEntry, today)
+            return if (journalAge >= FIRST_HINT_AFTER_DAYS) BackupHint.Overdue(days = null) else null
+        }
         val days = ChronoUnit.DAYS.between(lastSaved, today)
         return if (days >= OVERDUE_DAYS) BackupHint.Overdue(days) else null
     }

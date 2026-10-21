@@ -66,7 +66,7 @@ import java.time.LocalDate
 
 /**
  * Eintragsseite für einen beliebigen Tag.
- * @param onClose Seite schließen; Meldung für den Zeitstrahl oder `null`.
+ * @param onClose Seite schließen; Meldung für „Diese Woche“ bzw. das Archiv oder `null`.
  * @param showMessage Meldung anzeigen, während die Seite offen bleibt (z. B. Fehler).
  */
 @Composable

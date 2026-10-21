@@ -48,7 +48,7 @@ private val TAB_HEIGHT = 56.dp
 enum class HomeTab { WEEK, ARCHIVE }
 
 /**
- * Kopfzeile von Zeitstrahl und Archiv: „Relic“, rechts Lupe (Suche) und Regler (Einstellungen),
+ * Kopfzeile von „Diese Woche“ und Archiv: „Relic“, rechts Lupe (Suche) und Regler (Einstellungen),
  * darunter die Reiter „Diese Woche“ · „Archiv“ je über die halbe Breite.
  */
 @Composable

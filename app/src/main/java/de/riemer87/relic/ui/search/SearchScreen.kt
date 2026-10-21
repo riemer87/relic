@@ -185,7 +185,6 @@ private fun SearchResults(search: SearchUiState, listState: LazyListState, onOpe
             items(search.hits, key = { it.date.toEpochDay() }) { hit ->
                 DaySheet(
                     date = hit.date,
-                    filled = true,
                     numberColor = colors.ink,
                     kicker = DateText.monthYear(hit.date, locale),
                     kickerColor = colors.inkFaint,

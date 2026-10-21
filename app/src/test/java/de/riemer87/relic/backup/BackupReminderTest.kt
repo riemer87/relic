@@ -13,8 +13,8 @@ class BackupReminderTest {
         autoBackupOn: Boolean = false,
         problem: BackupProblem? = null,
         lastSaved: LocalDate? = null,
-        hasEntries: Boolean = true,
-    ) = BackupReminder.hint(autoBackupOn, problem, lastSaved, hasEntries, today)
+        firstEntry: LocalDate? = today.minusDays(60),
+    ) = BackupReminder.hint(autoBackupOn, problem, lastSaved, firstEntry, today)
 
     @Test
     fun `recent export - no hint`() {
@@ -33,8 +33,15 @@ class BackupReminderTest {
     }
 
     @Test
+    fun `new journal - no hint in the first week, then it comes`() {
+        assertNull(hint(lastSaved = null, firstEntry = today))
+        assertNull(hint(lastSaved = null, firstEntry = today.minusDays(6)))
+        assertEquals(BackupHint.Overdue(null), hint(lastSaved = null, firstEntry = today.minusDays(7)))
+    }
+
+    @Test
     fun `empty journal - nothing to back up, no hint`() {
-        assertNull(hint(lastSaved = null, hasEntries = false))
+        assertNull(hint(lastSaved = null, firstEntry = null))
     }
 
     @Test

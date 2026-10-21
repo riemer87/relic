@@ -85,7 +85,7 @@ private const val PAGE_MILLIS = 220
 private const val PAGE_SLIDE_FRACTION = 10
 
 /**
- * Die App, sobald ein Journal-Ordner eingerichtet ist: Zeitstrahl als Start, Eintragsseite pro Tag.
+ * Die App, sobald ein Journal-Ordner eingerichtet ist: „Diese Woche“ als Start, Eintragsseite pro Tag.
  * @param journalUri der eingerichtete Ordner (für die Anzeige in den Einstellungen)
  * @param onFolderChanged ein anderer Ordner wurde in den Einstellungen gewählt
  * @param openTodayRequest wird hochgezählt, wenn die Eintragsseite von heute geöffnet werden soll
@@ -124,7 +124,7 @@ fun RelicApp(
         if (navController.currentDestination?.route == current) navController.navigate(target)
     }
 
-    // Aus der Erinnerung: zurück zum Zeitstrahl und die Eintragsseite von heute öffnen.
+    // Aus der Erinnerung: zurück zu „Diese Woche“ und die Eintragsseite von heute öffnen.
     LaunchedEffect(openTodayRequest) {
         if (openTodayRequest > 0) {
             navController.popBackStack(HOME, inclusive = false)
@@ -226,7 +226,7 @@ fun RelicApp(
                         onClose = { message ->
                             photoLoader.forget(date) // Fotos können neue Dateinamen bekommen haben.
                             textCache.forget(date) // Für die Suche: Text neu lesen.
-                            // Zurück dorthin, wo man herkam (Zeitstrahl oder Archiv).
+                            // Zurück dorthin, wo man herkam („Diese Woche“ oder Archiv).
                             if (navController.currentDestination?.route == ENTRY) navController.popBackStack()
                             message?.let { showMessage(resources.getString(it)) }
                         },
@@ -258,7 +258,7 @@ private fun rememberBackupHint(timeline: TimelineViewModel, clock: Clock): Backu
         autoBackupOn = backup.enabled,
         problem = backup.problem,
         lastSaved = lastSaved,
-        hasEntries = week.hasAnyEntry,
+        firstEntry = week.firstEntry,
         today = week.today,
     )
 }

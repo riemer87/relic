@@ -19,10 +19,21 @@ nicht bedeuten, dass Jahre an Erinnerungen weg sind.
 - **Nachprüfbar privat:** Relic fragt keine Internet-Berechtigung an. Das kannst du in den
   Android-Einstellungen und im Play Store selbst sehen. Die App *kann* deine Einträge gar nicht
   verschicken – nicht nur „verspricht, es nicht zu tun“.
+- **Nicht einmal die Android-Gerätesicherung:** Viele Apps lassen Android ihre Daten still zu Google
+  sichern oder beim Handywechsel mitnehmen. Relic hat das ausdrücklich abgeschaltet – auch Relics
+  Einstellungen verlassen dein Handy nie ohne dich. Völlige Unabhängigkeit.
 - **Unabhängig:** Deine Einträge sind ganz normale Dateien. Du entscheidest, wo die Sicherung liegt:
   Google Drive, Nextcloud, Dropbox, OneDrive, ein USB-Stick, dein PC. Relic bindet dich an keinen Anbieter.
 - **Weniger, das schiefgehen kann:** Keine Anmeldung, keine abgelaufenen Zugänge, keine halb
   hochgeladenen Dateien.
+
+## Datenschutz auf einen Blick (für die Website)
+
+- Kein Internetzugriff – Relic *kann* nichts verschicken.
+- Keine Android-Gerätesicherung – nicht einmal Einstellungen gehen an Google oder auf ein anderes Handy.
+- Kein Konto, kein Server, kein Tracking, keine Werbung, keine Bezahl-Bibliotheken.
+- Deine Einträge sind normale Dateien in einem Ordner, den du wählst – lesbar auch ohne Relic.
+- Sicherungen gehen nur dorthin, wo du sie hinlegst.
 
 ## So liegt dein Tagebuch auf dem Handy
 
@@ -89,7 +100,8 @@ auf den PC kopieren.
 ## Relic erinnert dich
 
 Ist die automatische Sicherung aus und deine letzte Sicherung mindestens 30 Tage her (oder gab es noch
-keine), zeigt Relic auf „Diese Woche“ eine ruhige Zeile: *„Seit 34 Tagen keine Sicherung · Sichern →“*.
+keine und du schreibst schon seit mindestens einer Woche), zeigt Relic auf „Diese Woche“ eine ruhige
+Zeile: *„Seit 34 Tagen keine Sicherung · Sichern →“*.
 Ist die automatische Sicherung an, aber klappt nicht, steht dort *„Die automatische Sicherung klappt
 gerade nicht · Ansehen →“*. Ist alles in Ordnung, siehst du nichts. Keine Benachrichtigungen, kein Drängeln.
 

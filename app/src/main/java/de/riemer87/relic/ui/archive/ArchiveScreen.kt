@@ -66,7 +66,7 @@ import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
 
-/** Im Archiv zeigt die Vorschau mehr Text als im Zeitstrahl. */
+/** Im Archiv zeigt die Vorschau mehr Text als auf „Diese Woche“. */
 const val ARCHIVE_PREVIEW_LINES = 4
 
 /** Inhalt des Archiv-Reiters (Kopfzeile und Reiter kommen von der Startseite). */
@@ -180,7 +180,6 @@ internal fun ArchiveContent(
                 LaunchedEffect(date) { onDayVisible(date) }
                 DaySheet(
                     date = date,
-                    filled = true,
                     numberColor = colors.ink,
                     kicker = null,
                     kickerColor = colors.inkFaint,

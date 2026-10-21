@@ -27,12 +27,12 @@ data class TimelineUiState(
     val days: List<TimelineDay> = emptyList(),
     val isLoading: Boolean = true,
     val loadFailed: Boolean = false,
-    /** Gibt es überhaupt Einträge (auch ältere)? Erst dann lohnt eine Erinnerung ans Sichern. */
-    val hasAnyEntry: Boolean = false,
+    /** Frühester Eintrag überhaupt (`null`: noch keiner) – für die Erinnerung ans Sichern. */
+    val firstEntry: LocalDate? = null,
 )
 
 /**
- * Zustand des Zeitstrahls (heute und die 6 Tage davor). Liest zuerst nur, welche Tage Einträge
+ * Zustand von „Diese Woche“ (heute und die 6 Tage davor). Liest zuerst nur, welche Tage Einträge
  * haben; den Inhalt eines Tages erst, wenn er sichtbar wird.
  */
 class TimelineViewModel(
@@ -67,7 +67,13 @@ class TimelineViewModel(
                 return@launch
             }
             _state.update {
-                it.copy(today = today, days = Timeline.days(today, dates), isLoading = false, loadFailed = false, hasAnyEntry = dates.isNotEmpty())
+                it.copy(
+                    today = today,
+                    days = Timeline.days(today, dates),
+                    isLoading = false,
+                    loadFailed = false,
+                    firstEntry = dates.minOrNull(),
+                )
             }
             dayPreviews.refresh(dates)
         }

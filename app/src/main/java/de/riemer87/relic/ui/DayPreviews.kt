@@ -18,7 +18,7 @@ data class DayPreview(val text: String, val photos: List<String>)
 
 /**
  * Lädt Vorschauen erst, wenn ein Tag sichtbar wird, und merkt sie sich.
- * Gemeinsam genutzt von Zeitstrahl und Archiv.
+ * Gemeinsam genutzt von „Diese Woche“ und Archiv.
  */
 class DayPreviews(private val store: JournalStore, private val scope: CoroutineScope) {
 

@@ -51,12 +51,11 @@ fun Modifier.dashedOutline(color: Color, radius: Dp = SheetRadius): Modifier = d
 
 /**
  * Ein Tag als flaches Blatt: links große Tageszahl mit Wochentag-Kürzel, rechts eine kleine Zeile
- * und der Inhalt. Leere Tage (filled = false) haben einen gestrichelten Rand statt einer Fläche.
+ * und der Inhalt (für „Diese Woche“, Archiv und Suche). Leere Tage zeigt nur „Diese Woche“, als schmale Zeile.
  */
 @Composable
 fun DaySheet(
     date: LocalDate,
-    filled: Boolean,
     numberColor: Color,
     kicker: String?,
     kickerColor: Color,
@@ -69,7 +68,7 @@ fun DaySheet(
     Row(
         modifier = modifier
             .clip(SheetShape)
-            .then(if (filled) Modifier.background(colors.sheet) else Modifier.dashedOutline(colors.rule))
+            .background(colors.sheet)
             .clickable(onClick = onClick)
             .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -95,7 +94,7 @@ fun DaySheet(
     }
 }
 
-/** Text (gekürzt) und Fotos eines Tages, wie in Zeitstrahl und Archiv. */
+/** Text (gekürzt) und Fotos eines Tages, wie auf „Diese Woche“ und im Archiv. */
 @Composable
 fun DayPreviewContent(date: LocalDate, preview: DayPreview?, maxLines: Int, photoSize: Dp) =
     DayPreviewContent(date, AnnotatedString(preview?.text.orEmpty()), preview?.photos.orEmpty(), maxLines, photoSize)

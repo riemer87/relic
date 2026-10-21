@@ -26,7 +26,7 @@ class BackupHintTest {
     private fun show(hint: BackupHint?, onOpenBackup: () -> Unit = {}) = rule.setContent {
         RelicTheme {
             TimelineContent(
-                state = TimelineUiState(today = today, days = Timeline.days(today, setOf(today.minusDays(1))), isLoading = false, hasAnyEntry = true),
+                state = TimelineUiState(today = today, days = Timeline.days(today, setOf(today.minusDays(1))), isLoading = false, firstEntry = today.minusDays(1)),
                 previews = emptyMap(),
                 onOpenDay = {},
                 onOpenArchive = {},

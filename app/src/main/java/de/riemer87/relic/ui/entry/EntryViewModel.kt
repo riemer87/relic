@@ -43,7 +43,7 @@ data class EntryUiState(
     val isAddingPhotos: Boolean = false,
     /** Meldung auf der Seite; nach dem Anzeigen über [EntryViewModel.messageShown] gelöscht. */
     val message: EntryMessage? = null,
-    /** Gesetzt, sobald die Seite geschlossen werden soll; enthält die Meldung für den Zeitstrahl (oder 0). */
+    /** Gesetzt, sobald die Seite geschlossen werden soll; enthält die Meldung für „Diese Woche“ bzw. das Archiv (oder 0). */
     @StringRes val closeWith: Int? = null,
 )
 

@@ -175,7 +175,6 @@ private fun EntrySheet(day: TimelineDay, label: DayLabel, preview: DayPreview?, 
     val colors = Relic.colors
     DaySheet(
         date = day.date,
-        filled = true,
         numberColor = colors.ink,
         kicker = dayName(day.date, label),
         kickerColor = colors.inkSoft,
