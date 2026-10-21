@@ -74,7 +74,7 @@
         <item quantity="one">%1$d entry</item>
         <item quantity="other">%1$d entries</item>
     </plurals>
-    <string name="entry_text_placeholder">What happened today?</string>
+    <string name="entry_text_placeholder">What was on your mind?</string>
     <string name="entry_char_count" translatable="false">%1$d / %2$d</string>
     <string name="entry_save">Save</string>
     <string name="entry_saved">Entry saved</string>

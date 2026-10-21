@@ -132,7 +132,7 @@ internal fun TimelineContent(
     }
 }
 
-/** Heute: „HEUTE“, groß das Datum, darunter der Text – oder „Was war heute?“ auf einer feinen Linie. */
+/** Heute: „HEUTE“, groß das Datum, darunter der Text – oder „Was hat dich bewegt?“ auf einer feinen Linie. */
 @Composable
 private fun TodaySheet(day: TimelineDay, preview: DayPreview?, onClick: () -> Unit) {
     val colors = Relic.colors

@@ -28,6 +28,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.riemer87.relic.R
 import de.riemer87.relic.ui.theme.RelicTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -128,6 +129,11 @@ class RelicAppTest {
         rule.waitForIdle()
         rule.onNode(hasText(str(R.string.entry_title_past))).assertExists()
         rule.onNode(textField).assertExists()
+        // Fehler 2026-10-22: Auch beim Nachtragen stand „Was war heute?“ im leeren Textfeld.
+        // Der Hinweis gilt für jeden Tag und darf deshalb nicht von „heute“ sprechen.
+        val placeholder = str(R.string.entry_text_placeholder)
+        rule.onNode(hasText(placeholder), useUnmergedTree = true).assertExists()
+        assertFalse(placeholder, placeholder.contains(str(R.string.timeline_today), ignoreCase = true))
     }
 
     @Test

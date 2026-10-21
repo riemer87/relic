@@ -69,7 +69,7 @@
         <item quantity="one">%1$d Eintrag</item>
         <item quantity="other">%1$d Einträge</item>
     </plurals>
-    <string name="entry_text_placeholder">Was war heute?</string>
+    <string name="entry_text_placeholder">Was hat dich bewegt?</string>
     <string name="entry_save">Speichern</string>
     <string name="entry_saved">Eintrag gespeichert</string>
     <string name="entry_removed">Eintrag entfernt</string>

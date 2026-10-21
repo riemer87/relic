@@ -156,7 +156,7 @@ Einstellungen = **Regler** (drei Linien mit Kreisen), Suche = Lupe. Keine gefül
 ### Diese Woche (Startseite)
 Kein Zeitstrahl. Abstand 20 unter den Reitern, 10 zwischen den Einträgen.
 - **Blatt für heute** (oben, Blatt-Farbe, Innenabstand 18): Kicker „HEUTE“ im Akzent, darunter das Datum
-  groß (Titel groß, „Mittwoch, 21. Oktober“), darunter „Was war heute?“ (Text groß, Tinte blass) auf einer
+  groß (Titel groß, „Mittwoch, 21. Oktober“), darunter „Was hat dich bewegt?“ (Text groß, Tinte blass) auf einer
   feinen Linie (1, Linie-Farbe). Kein Knopf: das ganze Blatt ist antippbar. Hat heute schon einen Eintrag,
   stehen dort bis zu 3 Zeilen Text und die Fotos (56).
 - **Tage mit Eintrag:** Tagesblatt (siehe unten), Kicker „GESTERN“ bzw. Wochentag in Tinte weich.
