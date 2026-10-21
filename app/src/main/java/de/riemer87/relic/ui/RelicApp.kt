@@ -1,6 +1,11 @@
 package de.riemer87.relic.ui
 
 import android.net.Uri
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
@@ -61,6 +66,12 @@ private const val SEARCH = "search"
 private const val SETTINGS = "settings"
 private const val FOLDER = "folder"
 
+/** Dauer eines Seitenwechsels; beim Hinausgehen die Hälfte, damit die neue Seite gleich frei liegt. */
+private const val PAGE_MILLIS = 220
+
+/** Wie weit eine Seite beim Wechsel gleitet: ein Zehntel der Breite – angedeutet, nicht geflogen. */
+private const val PAGE_SLIDE_FRACTION = 10
+
 /**
  * Die App, sobald ein Journal-Ordner eingerichtet ist: Zeitstrahl als Start, Eintragsseite pro Tag.
  * @param journalUri der eingerichtete Ordner (für die Anzeige in den Einstellungen)
@@ -120,6 +131,12 @@ fun RelicApp(
                 navController = navController,
                 startDestination = HOME,
                 modifier = Modifier.padding(innerPadding),
+                // Kurz und leicht statt der Standard-Überblendung von 0,7 s: Neue Seiten gleiten ein Stück von
+                // rechts herein, beim Zurückgehen wieder hinaus. Bewegt wird nur Position und Durchsichtigkeit.
+                enterTransition = { fadeIn(tween(PAGE_MILLIS)) + slideInHorizontally(tween(PAGE_MILLIS)) { it / PAGE_SLIDE_FRACTION } },
+                exitTransition = { fadeOut(tween(PAGE_MILLIS / 2)) },
+                popEnterTransition = { fadeIn(tween(PAGE_MILLIS / 2)) },
+                popExitTransition = { fadeOut(tween(PAGE_MILLIS)) + slideOutHorizontally(tween(PAGE_MILLIS)) { it / PAGE_SLIDE_FRACTION } },
             ) {
                 composable(HOME) {
                     val timeline: TimelineViewModel = viewModel(factory = viewModelFactory { initializer { TimelineViewModel(store, clock) } })

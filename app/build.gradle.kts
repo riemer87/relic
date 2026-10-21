@@ -26,6 +26,14 @@ android {
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
+        // Für den Alltag auf dem eigenen Handy: so schnell wie die Play-Store-Version, aber mit dem
+        // Entwickler-Schlüssel dieses PCs signiert (kein Geheimnis im Repository). Ersetzt die
+        // Debug-Version ohne Datenverlust: `gradlew installLocal`.
+        create("local") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
